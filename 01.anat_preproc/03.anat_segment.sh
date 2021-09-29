@@ -1,34 +1,60 @@
 #!/usr/bin/env bash
 
-######### ANATOMICAL 03 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=./utils.sh
+source $(dirname "$0")/utils.sh
 
-## Variables
-# anat
-anat_in=$1
-# folders
-adir=$2
+displayhelp() {
+echo "Required:"
+echo "anat_in adir"
+echo "Optional:"
+echo "tmp"
+exit ${1:-0}
+}
 
-## Temp folder
-tmp=${3:-/tmp}
-tmp=${tmp}/03as_${1}
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+tmp=.
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-anat_in)		anat_in=$2;shift;;
+		-adir)		adir=$2;shift;;
+
+		-tmp)		tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
+
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
+checkreqvar anat_in adir
+checkoptvar tmp
 
 ######################################
 ######### Script starts here #########
 ######################################
-
-# Start making the tmp folder
-mkdir ${tmp}
 
 cwd=$(pwd)
 
 cd ${adir} || exit
 
 #Read and process input
-anat=${anat_in%_*}
+anat=$( basename ${anat_in%_*} )
+if_missing_do mkdir ${tmp}
 
 ## 01. Atropos (segmentation)
 # 01.1. Run Atropos
@@ -77,5 +103,4 @@ echo "Recomposing the eroded maps into one volume"
 fslmaths ${anat}_GM -mul 2 ${anat}_GM
 fslmaths ${tmp}/${anat}_WM_eroded -sub ${tmp}/${anat}_CSF -thr 0 -mul 3 -add ${tmp}/${anat}_CSF_eroded -add ${anat}_GM ${anat}_seg_eroded
 
-rm -rf ${tmp}
 cd ${cwd}

@@ -1,23 +1,64 @@
 #!/usr/bin/env bash
 
-######### Preparing folders for EuskalIBUR
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    22.11.2019
-#########
+# shellcheck source=./utils.sh
+source $(dirname "$0")/utils.sh
 
+displayhelp() {
+echo "Required:"
+echo "sub ses wdr std prjname"
+echo "Optional:"
+echo "overwrite stdpath tmp"
+exit ${1:-0}
+}
 
-sub=$1
-ses=$2
-wdr=$3
-overwrite=$4
+# Check if there is input
 
-anat1=$5
-anat2=$6
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
 
-stdp=$7
+# Preparing the default values for variables
+overwrite=no
+scriptpath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+stdpath=${scriptpath}/90.template
+mmres=no
 
-std=$8
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-sub)		sub=$2;shift;;
+		-ses)		ses=$2;shift;;
+		-wdr)		wdr=$2;shift;;
+		-std)		std=$2;shift;;
+		-prjname)	prjname=$2;shift;;
+
+		-overwrite)	overwrite=yes;;
+		-stdpath)	stdpath=$2;shift;;
+		-mmres)		mmres=$2;shift;;
+		-tmp)		tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
+
+# Derivate variables
+if [[ -z ${tmp+x} ]]
+then
+	tmp=${wdr}
+fi
+tmp=${tmp}/tmp_${prjname}
+
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
+checkreqvar sub ses wdr std prjname
+checkoptvar overwrite stdpath mmres tmp
 
 ######################################
 ######### Script starts here #########
@@ -31,35 +72,43 @@ echo "*** Preparing folders"
 echo "************************************"
 echo "************************************"
 
-cd ${wdr}/sub-${sub}/ses-${ses} || exit
-if [[ "${overwrite}" == "overwrite" ]]
+cd ${wdr} || ( echo "${wdr} not found" && exit )
+
+# Start build path
+sourcepath="${wdr}"
+
+if [[ -d "rawdata" ]]
 then
-	for fld in func_preproc fmap_preproc reg anat_preproc
-	do
-		if [[ -d "${fld}" ]]
-		then
-			if [[ "${fld}" == "func_preproc" ]]
-			then
-				# backup only the necessary files for meica
-				for bck in ${fld}/*_meica
-				do
-					[[ -e "${bck}" && -e "${bck/ica_mixing.tsv}" ]] || break
-					echo "Backing up sub${bck#*sub*}"
-					tar -zcvf $( date +%F_%H-%M-%S )_sub${bck#*sub*}_bck.tar.gz ${bck}/ica_decomposition.json ${bck}/ica_mixing.tsv
-				done
-			fi
-				
-			rm -r ${fld}
-		fi
-		mkdir ${fld}
-	done
-
-	imcp func/*.nii.gz func_preproc/.
-	imcp anat/${anat1}.nii.gz anat_preproc/.
-	imcp anat/${anat2}.nii.gz anat_preproc/.
-	imcp fmap/*.nii.gz fmap_preproc/.
-	imcp ${stdp}/${std}.nii.gz reg/.
-
+	sourcepath="${sourcepath}/rawdata"
 fi
+
+echo "Checking if the selected session folder exists"
+if_missing_do stop ${sourcepath}/sub-${sub}/ses-${ses}
+
+echo "Overwrite tmp folder"
+replace_and mkdir ${tmp}
+
+echo "Check derivative project folder"
+if_missing_do mkdir derivatives
+
+if [[ "${overwrite}" == "yes" ]] && [[ -d derivatives/${prjname} ]]
+then
+	rm -rf derivatives/${prjname}
+fi
+
+if_missing_do mkdir derivatives/${prjname}/sub-${sub}/ses-${ses}/func \
+					derivatives/${prjname}/sub-${sub}/ses-${ses}/anat \
+					derivatives/${prjname}/sub-${sub}/ses-${ses}/fmap \
+					derivatives/${prjname}/sub-${sub}/ses-${ses}/reg
+
+echo "Initialise files"
+if_missing_do copy ${stdpath}/${std}.nii.gz reg/${std}.nii.gz
+if [ -e ${stdpath}/${std}_resamp_${mmres}mm.nii.gz ]
+then
+	imcp {stdpath}/${std}_resamp_${mmres}mm.nii.gz reg/${std}_resamp_${mmres}mm.nii.gz
+fi
+imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*.nii.gz derivatives/${prjname}/sub-${sub}/ses-${ses}/func/.
+imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz derivatives/${prjname}/sub-${sub}/ses-${ses}/anat/.
+imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz derivatives/${prjname}/sub-${sub}/ses-${ses}/fmap/.
 
 cd ${cwd}

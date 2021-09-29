@@ -1,34 +1,57 @@
 #!/usr/bin/env bash
 
-######### FUNCTIONAL 02 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=./utils.sh
+source $(dirname "$0")/utils.sh
 
-## Variables
-# functional
-func_in=$1
-# folders
-fdir=$2
-# discard
-# vdsc=$3
-## Optional
-# Anat reference
-anat=${3:-none}
-# Motion reference file
-mref=${4:-none}
-# Joint transform Flag
-jstr=${5:-none}
-# Anat used for segmentation
-aseg=${6:-none}
+displayhelp() {
+echo "Required:"
+echo "func_in fdir"
+echo "Optional:"
+echo "anat mref aseg antsaffine tmp"
+exit ${1:-0}
+}
 
-## Temp folder
-tmp=${7:-.}
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+anat=none
+mref=none
+aseg=none
+antsaffine=no
+tmp=.
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-func_in)	func_in=$2;shift;;
+		-fdir)		fdir=$2;shift;;
+
+		-anat)			anat=$2;shift;;
+		-mref)			mref=$2;shift;;
+		-aseg)			aseg=$2;shift;;
+		-antsaffine)	antsaffine=yes;;
+		-tmp)			tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
 
 ### print input
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
+checkreqvar func_in fdir
+checkoptvar anat mref aseg antsaffine tmp
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -38,14 +61,14 @@ cwd=$(pwd)
 cd ${fdir} || exit
 
 #Read and process input
-func=${func_in%_*}
+func=$( basename ${func_in%_*} )
 
-nTR=$(fslval ${tmp}/${func_in} dim4)
+nTR=$(fslval ${func_in} dim4)
 let nTR--
 
 ## 01. Motion Computation, if more than 1 volume
 
-if [[ nTR -gt 1 ]]
+if [[ ${nTR} -gt 1 ]]
 then
 	# 01.1. Mcflirt
 	if [[ "${mref}" == "none" ]]
@@ -103,8 +126,9 @@ then
 						-t ${anat2mref}.mat \
 						-t [../reg/${anat}2${aseg}0GenericAffine.mat,1]
 fi
+
 ## 03. Split and affine to ANTs if required
-if [[ "${jstr}" != "none" ]]
+if [[ "${antsaffine}" == "yes" ]]
 then
 	echo "Splitting ${func}"
 	if [[ ! -d "${tmp}/${func}_split" ]]; then mkdir ${tmp}/${func}_split; fi

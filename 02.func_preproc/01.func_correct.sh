@@ -1,30 +1,55 @@
 #!/usr/bin/env bash
 
-######### FUNCTIONAL 01 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=./utils.sh
+source $(dirname "$0")/utils.sh
 
-## Variables
-# functional
-func=$1
-# folders
-fdir=$2
-# discard
-vdsc=${3:-0}
-## Optional
-# Despiking
-dspk=${4:-none}
-# Slicetiming
-siot=${5:-none}
+displayhelp() {
+echo "Required:"
+echo "func_in fdir"
+echo "Optional:"
+echo "voldiscard despike slicetimeinterp tmp"
+exit ${1:-0}
+}
 
-## Temp folder
-tmp=${6:-.}
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+voldiscard=0
+despike=no
+slicetimeinterp=no
+tmp=.
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-func_in)	func_in=$2;shift;;
+		-fdir)		fdir=$2;shift;;
+
+		-voldiscard)		voldiscard=$2;shift;;
+		-despike)			despike=yes;;
+		-slicetimeinterp)	slicetimeinterp=yes;;
+		-tmp)				tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
 
 ### print input
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
+checkreqvar func fdir
+checkoptvar voldiscard despike slicetimeinterp tmp
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -33,18 +58,20 @@ cwd=$(pwd)
 
 cd ${fdir} || exit
 
-nTR=$(fslval ${tmp}/${func} dim4)
+#Read and process input
+func=$( basename ${func_in%_*} )
+nTR=$(fslval ${func_in} dim4)
 
 ## 01. Corrections
 # 01.1. Discard first volumes if there's more than one TR
 
-funcsource=${tmp}/${func}
-if [[ "${nTR}" -gt "1" && "${vdsc}" -gt "0" ]]
+funcsource=${func_in}
+if [[ "${nTR}" -gt "1" && "${voldiscard}" -gt "0" ]]
 then
-	echo "Discarding first ${vdsc} volumes"
+	echo "Discarding first ${voldiscard} volumes"
 	# The next line was added due to fslroi starting from 0, however it does not.
-	# let vdsc--
-	fslroi ${funcsource} ${tmp}/${func}_dsd.nii.gz ${vdsc} -1
+	# let voldiscard--
+	fslroi ${funcsource} ${tmp}/${func}_dsd.nii.gz ${voldiscard} -1
 	funcsource=${tmp}/${func}_dsd
 fi
 # 01.2. Deoblique & resample
@@ -63,7 +90,7 @@ then
 fi
 
 # 01.4. Despike if asked
-if [[ "${dspk}" != "none" ]]
+if [[ "${despike}" == "yes" ]]
 then
 	echo "Despike ${func}"
 	3dDespike -prefix ${tmp}/${func}_dsk.nii.gz ${funcsource}.nii.gz
@@ -71,11 +98,11 @@ then
 fi
 
 ## 02. Slice Interpolation if asked
-if [[ "${siot}" != "none" ]]
+if [[ "${slicetimeinterp}" == "yes" ]]
 then
 	echo "Slice Interpolation of ${func}"
 	3dTshift -Fourier -prefix ${tmp}/${func}_si.nii.gz \
-	-tpattern ${siot} -overwrite \
+	-tpattern ${slicetimeinterp} -overwrite \
 	${funcsource}.nii.gz
 	funcsource=${tmp}/${func}_si
 fi

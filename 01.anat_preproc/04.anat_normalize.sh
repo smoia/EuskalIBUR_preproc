@@ -1,19 +1,42 @@
 #!/usr/bin/env bash
 
-######### ANATOMICAL 04 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=./utils.sh
+source $(dirname "$0")/utils.sh
 
-## Variables
-# anat
-anat_in=$1
-# folders
-adir=$2
-# MNI
-std=$3
-mmres=$4
+displayhelp() {
+echo "Required:"
+echo "anat_in adir std mmres"
+exit ${1:-0}
+}
+
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-anat_in)	anat_in=$2;shift;;
+		-adir)		adir=$2;shift;;
+		-std)		std=$2;shift;;
+		-mmres)		mmres=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
+
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
+checkreqvar anat_in adir std mmres
 
 ######################################
 ######### Script starts here #########
@@ -24,7 +47,7 @@ cwd=$(pwd)
 cd ${adir} || exit
 
 #Read and process input
-anat=${anat_in%_*}
+anat=$( basename ${anat_in%_*} )
 
 ## 01. Normalization
 
@@ -63,10 +86,12 @@ if [ ! -e ${std}_resamp_${mmres}mm.nii.gz ]
 then
 	echo "Resampling ${std} at ${mmres}mm"
 	ResampleImageBySpacing 3 ${std}.nii.gz ${std}_resamp_${mmres}mm.nii.gz ${mmres} ${mmres} ${mmres} 0
+	echo "Creating mask for ${std} at ${mmres}mm"
+	fslmaths ../reg/${std}_resamp_${mmres}mm -bin ../reg/${std}_resamp_${mmres}mm_mask
 fi
 
 echo "Registering ${anat} to resampled standard"
-antsApplyTransforms -d 3 -i ${adir}/${anat_in}.nii.gz \
+antsApplyTransforms -d 3 -i ${anat_in}.nii.gz \
 					-r ${std}_resamp_${mmres}mm.nii.gz -o ${anat}2std_resamp_${mmres}mm.nii.gz \
 					-n Linear -t ${anat}2std1Warp.nii.gz -t ${anat}2std0GenericAffine.mat
 

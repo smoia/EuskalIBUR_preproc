@@ -1,22 +1,52 @@
 #!/usr/bin/env bash
 
-######### ANATOMICAL 02 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=./utils.sh
+source $(dirname "$0")/utils.sh
 
-## Variables
-# anat
-anat_in=$1
-# folders
-adir=$2
+displayhelp() {
+echo "Required:"
+echo "anat_in adir"
+echo "Optional:"
+echo "mask aref c3dsrc"
+exit ${1:-0}
+}
 
-## Optional
-# mask
-mask=${3:-none}
-aref=${4:-none}
-c3dsrc=${5:-yes}
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+mask=none
+aref=none
+c3dsrc=no
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-anat_in)	anat_in=$2;shift;;
+		-adir)		adir=$2;shift;;
+
+		-mask)		mask=$2;shift;;
+		-aref)		aref=$2;shift;;
+		-c3dsrc)	c3dsrc=yes;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
+
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
+checkreqvar anat_in adir
+checkoptvar mask aref c3dsrc
 
 ######################################
 ######### Script starts here #########
@@ -27,7 +57,7 @@ cwd=$(pwd)
 cd ${adir} || exit
 
 #Read and process input
-anat=${anat_in%_*}
+anat=$( basename ${anat_in%_*} )
 
 if [[ "${mask}" == "none" ]]
 then
