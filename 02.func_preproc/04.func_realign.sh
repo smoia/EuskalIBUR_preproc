@@ -1,31 +1,59 @@
 #!/usr/bin/env bash
 
-######### FUNCTIONAL 03 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
-## Variables
-# functionals
-func_in=$1
-fmat=$2
-mask=$3
-# folders
-fdir=$4
-# discard
-# vdsc=$5
-# Motion reference file
-mref=$5
-# Motion Outlier Images Output
-moio=${6:-none}
+displayhelp() {
+echo "Required:"
+echo "func_in fmat mask fdir mref"
+echo "Optional:"
+echo "computeoutliers tmp"
+exit ${1:-0}
+}
 
-## Temp folder
-tmp=${7:-.}
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+tmp=.
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-func_in)	func_in=$2;shift;;
+		-fmat)		fmat=$2;shift;;
+		-mask)		mask=$2;shift;;
+		-fdir)		fdir=$2;shift;;
+		-mref)		mref=$2;shift;;
+
+		-computeoutliers)		computeoutliers=yes;;
+		-tmp)					tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
 
 ### print input
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
+checkreqvar func_in fmat mask fdir mref
+checkoptvar computeoutliers tmp
+
+### Remove nifti suffix
+for var in func_in mask  mref
+do
+eval "${var}=${!var%.nii*}"
+done
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -35,10 +63,10 @@ cwd=$(pwd)
 cd ${fdir} || exit
 
 #Read and process input
-func=${func_in%_*}
+func=$( basename ${func_in%_*} )
 
-nTR=$(fslval ${tmp}/${func_in} dim4)
-TR=$(fslval ${tmp}/${func_in} pixdim4)
+nTR=$(fslval ${func_in} dim4)
+TR=$(fslval ${func_in} pixdim4)
 let nTR--
 
 ## 01. Motion Realignment
@@ -46,9 +74,9 @@ let nTR--
 # 01.1. Apply McFlirt
 echo "Applying McFlirt in ${func}"
 
-if [[ ! -d "${tmp}/${func}_split" ]]; then mkdir ${tmp}/${func}_split; fi
-if [[ ! -d "${tmp}/${func}_merge" ]]; then mkdir ${tmp}/${func}_merge; fi
-fslsplit ${tmp}/${func_in} ${tmp}/${func}_split/vol_ -t
+replace_and mkdir ${tmp}/${func}_split
+replace_and mkdir ${tmp}/${func}_merge
+fslsplit ${func_in} ${tmp}/${func}_split/vol_ -t
 
 for i in $( seq -f %04g 0 ${nTR} )
 do
@@ -64,7 +92,7 @@ fslmerge -tr ${tmp}/${func}_mcf ${tmp}/${func}_merge/vol_* ${TR}
 echo "BETting ${func}"
 fslmaths ${tmp}/${func}_mcf -mas ${mask} ${tmp}/${func}_bet
 
-if [[ "${moio}" != "none" ]]
+if [[ "${computeoutliers}" == "yes" ]]
 then
 	echo "Computing DVARS and FD for ${func}"
 	# 01.3. Compute various metrics

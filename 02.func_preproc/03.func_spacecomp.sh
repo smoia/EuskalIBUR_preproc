@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=./utils.sh
-source $(dirname "$0")/utils.sh
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -52,6 +52,12 @@ echo "${printline} " "$@"
 checkreqvar func_in fdir
 checkoptvar anat mref aseg antsaffine tmp
 
+### Remove nifti suffix
+for var in func_in anat mref aseg
+do
+eval "${var}=${!var%.nii*}"
+done
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -75,12 +81,12 @@ then
 	then
 		echo "Creating a reference for ${func}"
 		mref=${func}_avgref
-		fslmaths ${tmp}/${func_in} -Tmean ${mref}
+		fslmaths ${func_in} -Tmean ${mref}
 	fi
 
 	echo "McFlirting ${func}"
 	if [[ -d ${tmp}/${func}_mcf.mat ]]; then rm -r ${tmp}/${func}_mcf.mat; fi
-	mcflirt -in ${tmp}/${func_in} -r ${mref} -out ${tmp}/${func}_mcf -stats -mats -plots
+	mcflirt -in ${func_in} -r ${mref} -out ${tmp}/${func}_mcf -stats -mats -plots
 
 	# 01.2. Demean motion parameters
 	echo "Demean and derivate ${func} motion parameters"
@@ -90,8 +96,8 @@ then
 	# 01.3. Compute various metrics
 	echo "Computing DVARS and FD for ${func}"
 	fsl_motion_outliers -i ${tmp}/${func}_mcf -o ${tmp}/${func}_mcf_dvars_confounds -s ${func}_dvars_post.par -p ${func}_dvars_post --dvars --nomoco
-	fsl_motion_outliers -i ${tmp}/${func_in} -o ${tmp}/${func}_mcf_dvars_confounds -s ${func}_dvars_pre.par -p ${func}_dvars_pre --dvars --nomoco
-	fsl_motion_outliers -i ${tmp}/${func_in} -o ${tmp}/${func}_mcf_fd_confounds -s ${func}_fd.par -p ${func}_fd --fd
+	fsl_motion_outliers -i ${func_in} -o ${tmp}/${func}_mcf_dvars_confounds -s ${func}_dvars_pre.par -p ${func}_dvars_pre --dvars --nomoco
+	fsl_motion_outliers -i ${func_in} -o ${tmp}/${func}_mcf_fd_confounds -s ${func}_fd.par -p ${func}_fd --fd
 fi
 
 if [[ ! -e "${mref}_brain_mask" && "${mref}" != "none" ]]
@@ -105,41 +111,47 @@ echo "BETting ${func}"
 fslmaths ${tmp}/${func}_mcf -mas ${mref}_brain_mask ${tmp}/${func}_bet
 
 ## 02. Anat Coreg
-anat2mref=../reg/${anat}2${mref##*/}0GenericAffine
+mrefsfx=$( basename ${mref} )
+mrefsfx=${mref#*ses-*_}
+anat2mref=../reg/${anat}2${mrefsfx}0GenericAffine
 
 if [[ "${anat}" != "none" && ! -e "${anat2mref}.mat" ]]
 then
 	echo "Coregistering ${func} to ${anat}"
-	flirt -in ${anat}_brain -ref ${mref}_brain -out ${anat}2${mref##*/} -omat ${anat}2${mref##*/}_fsl.mat \
+	flirt -in ${anat}_brain -ref ${mref}_brain -out ${anat}2${mrefsfx} -omat ${anat}2${mrefsfx}_fsl.mat \
 	-searchry -90 90 -searchrx -90 90 -searchrz -90 90
 	echo "Affining for ANTs"
 	c3d_affine_tool -ref ${mref}_brain -src ${anat}_brain \
-	${anat}2${mref##*/}_fsl.mat -fsl2ras -oitk ${anat}2${mref##*/}0GenericAffine.mat
-	mv ${anat}2${mref##*/}* ../reg/.
+	${anat}2${mrefsfx}_fsl.mat -fsl2ras -oitk ${anat}2${mrefsfx}0GenericAffine.mat
+	mv ${anat}2${mrefsfx}* ../reg/.
 fi
-if [[ "${aseg}" != "none" && -e "../anat_preproc/${aseg}_seg.nii.gz" && -e "../reg/${anat}2${aseg}0GenericAffine.mat" && ! -e "../anat_preproc/${aseg}_seg2mref.nii.gz" ]]
+
+asegsfx=$( basename ${aseg} )
+asegsfx=${aseg#*ses-*_}
+if [[ "${aseg}" != "none" && -e "../anat/${aseg}_seg.nii.gz" && -e "../reg/${anat}2${asegsfx}0GenericAffine.mat" && ! -e "../anat/${aseg}_seg2mref.nii.gz" ]]
 then
 	echo "Coregistering anatomical segmentation to ${func}"
-	antsApplyTransforms -d 3 -i ../anat_preproc/${aseg}_seg.nii.gz \
-						-r ${mref}.nii.gz -o ../anat_preproc/${aseg}_seg2mref.nii.gz \
+	antsApplyTransforms -d 3 -i ../anat/${aseg}_seg.nii.gz \
+						-r ${mref}.nii.gz -o ../anat/${aseg}_seg2mref.nii.gz \
 						-n Multilabel -v \
 						-t ${anat2mref}.mat \
-						-t [../reg/${anat}2${aseg}0GenericAffine.mat,1]
+						-t [../reg/${anat}2${asegsfx}0GenericAffine.mat,1]
 fi
 
 ## 03. Split and affine to ANTs if required
 if [[ "${antsaffine}" == "yes" ]]
 then
+
 	echo "Splitting ${func}"
-	if [[ ! -d "${tmp}/${func}_split" ]]; then mkdir ${tmp}/${func}_split; fi
-	if [[ ! -d "../reg/${func}_mcf_ants_mat" ]]; then mkdir ../reg/${func}_mcf_ants_mat; fi
-	fslsplit ${tmp}/${func_in} ${tmp}/${func}_split/vol_ -t
+	replace_and mkdir ${tmp}/${func}_split
+	replace_and mkdir ../reg/${func}_mcf_ants_mat
+	fslsplit ${func_in} ${tmp}/${func}_split/vol_ -t
 
 	for i in $( seq -f %04g 0 ${nTR} )
 	do
 		echo "Affining volume ${i} of ${nTR} in ${func}"
-		c3d_affine_tool -ref ${mref}_brain_mask -src ${tmp}/${func}_split/vol_${i}.nii.gz \
-		${tmp}/${func}_mcf.mat/MAT_${i} -fsl2ras -oitk ../reg/mcf_ants_mat/v${i}2${func}.mat
+		c3d_affine_tool -ref ${mref}_brain -src ${tmp}/${func}_split/vol_${i}.nii.gz \
+		${tmp}/${func}_mcf.mat/MAT_${i} -fsl2ras -oitk ../reg/${func}_mcf_ants_mat/v${i}2${mrefsfx}.mat
 	done
 	rm -r ${tmp}/${func}_split
 fi

@@ -1,37 +1,63 @@
 #!/usr/bin/env bash
 
-######### FUNCTIONAL 04 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
-## Variables
-# file
-func_in=$1
-# folders
-fdir=$2
+displayhelp() {
+echo "Required:"
+echo "func_in"
+echo "Optional:"
+echo "tmp"
+exit ${1:-0}
+}
 
-## Temp folder
-tmp=${3:-.}
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+tmp=.
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-func_in)	func_in=$2;shift;;
+
+		-tmp)		tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
 
 ### print input
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
+checkreqvar func_in
+checkoptvar tmp
+
+### Remove nifti suffix
+func_in=${func_in%.nii*}
+
 ######################################
 ######### Script starts here #########
 ######################################
 
 cwd=$(pwd)
 
-cd ${fdir} || exit
-
 #Read and process input
-func=${func_in%_*}
+func=$( basename ${func_in%_*} )
 
 echo "Computing SPC of ${func} ( [X-avg(X)]/avg(X) )"
 
-fslmaths ${tmp}/${func_in} -Tmean ${tmp}/${func}_mean
-fslmaths ${tmp}/${func_in} -sub ${tmp}/${func}_mean -div ${tmp}/${func}_mean ${tmp}/${func}_SPC
+fslmaths ${func_in} -Tmean ${tmp}/${func}_mean
+fslmaths ${func_in} -sub ${tmp}/${func}_mean -div ${tmp}/${func}_mean ${tmp}/${func}_SPC
 
 cd ${cwd}

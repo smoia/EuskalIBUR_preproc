@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# shellcheck source=./utils.sh
-source $(dirname "$0")/utils.sh
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
 displayhelp() {
 echo "Required:"
 echo "anat_in adir"
 echo "Optional:"
-echo "mask aref c3dsrc"
+echo "mask aref c3dsource"
 exit ${1:-0}
 }
 
@@ -21,7 +21,7 @@ fi
 # Preparing the default values for variables
 mask=none
 aref=none
-c3dsrc=no
+c3dsource=none
 
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
@@ -33,7 +33,7 @@ do
 
 		-mask)		mask=$2;shift;;
 		-aref)		aref=$2;shift;;
-		-c3dsrc)	c3dsrc=yes;;
+		-c3dsource)	c3dsource=$2;shift;;
 
 		-h)			displayhelp;;
 		-v)			version;exit 0;;
@@ -46,7 +46,13 @@ done
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar anat_in adir
-checkoptvar mask aref c3dsrc
+checkoptvar mask aref c3dsource
+
+### Remove nifti suffix
+for var in anat_in mask aref
+do
+eval "${var}=${!var%.nii*}"
+done
 
 ######################################
 ######### Script starts here #########
@@ -80,30 +86,34 @@ else
 	fslmaths ${anat}_brain -bin ${anat}_brain_mask
 fi
 
-if [[ "${aref}" != "none" ]] && [[ -e ../reg/${anat}2${aref}_fsl.mat ]]
+arefsfx=$( basename ${aref} )
+arefsfx=${aref#*ses-*_}
+
+if [[ "${aref}" != "none" ]] && [[ -e ../reg/${anat}2${arefsfx}_fsl.mat ]]
 then
 	# If a reference is specified, coreg the mask to the reference
 	echo "Flirting ${mask} into ${aref}"
 	flirt -in ${mask} -ref ${aref} -cost normmi -searchcost normmi \
-		  -init ../reg/${anat}2${aref}_fsl.mat -o ${aref}_brain_mask \
+		  -init ../reg/${anat}2${arefsfx}_fsl.mat -o ${aref}_brain_mask \
 		  -applyxfm -interp nearestneighbour
 fi
-	
-if [[ "${c3dsrc}" != "none" ]]
+
+if [[ "${c3dsource}" != "none" ]]
 then
+	anatsfx=${anat#*ses-*_}
+
 	# If a source for c3d is specified,
 	# translate fsl transformation into ants with the right images.
 	echo "Moving from FSL to ants in brain extracted images"
-	c3d_affine_tool -ref ${anat}_brain -src ${c3dsrc}_brain ../reg/${c3dsrc}2${anat}_fsl.mat \
-				    -fsl2ras -oitk ../reg/${c3dsrc}2${anat}0GenericAffine.mat
+	c3d_affine_tool -ref ${anat}_brain -src ${c3dsource}_brain ../reg/${c3dsource}2${anatsfx}_fsl.mat \
+				    -fsl2ras -oitk ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat
 	# Also transform both skullstripped and not!
-	antsApplyTransforms -d 3 -i ${c3dsrc}_brain.nii.gz \
-						-r ${anat}_brain.nii.gz -o ../reg/${c3dsrc}_brain2${anat}_brain.nii.gz \
-						-n Linear -t ../reg/${c3dsrc}2${anat}0GenericAffine.mat/${c3dsrc}2${anat}0GenericAffine.mat
-	antsApplyTransforms -d 3 -i ${c3dsrc}.nii.gz \
-						-r ${anat}.nii.gz -o ../reg/${c3dsrc}2${anat}.nii.gz \
-						-n Linear -t ../reg/${c3dsrc}2${anat}0GenericAffine.mat
+	antsApplyTransforms -d 3 -i ${c3dsource}_brain.nii.gz \
+						-r ${anat}_brain.nii.gz -o ../reg/${c3dsource}_brain2${anatsfx}_brain.nii.gz \
+						-n Linear -t ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat/${c3dsource}2${anatsfx}0GenericAffine.mat
+	antsApplyTransforms -d 3 -i ${c3dsource}.nii.gz \
+						-r ${anat}.nii.gz -o ../reg/${c3dsource}2${anatsfx}.nii.gz \
+						-n Linear -t ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat
 fi
-
 
 cd ${cwd}

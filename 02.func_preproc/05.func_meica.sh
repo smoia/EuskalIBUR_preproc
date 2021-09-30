@@ -1,29 +1,53 @@
 #!/usr/bin/env bash
 
-######### FUNCTIONAL 03 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
-## Variables
-# functional
-func_in=$1
-# folders
-fdir=$2
-# echo times
-TEs="$3"
-# backup?
-bck=${4:-none}
+displayhelp() {
+echo "Required:"
+echo "func_in fdir TEs"
+echo "Optional:"
+echo "tmp"
+exit ${1:-0}
+}
 
-## Temp folder
-tmp=${5:-.}
+# Check if there is input
 
-scriptdir=${6:-/scripts}
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+tmp=.
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-func_in)	func_in=$2;shift;;
+		-fdir)		fdir=$2;shift;;
+		-TEs)		TEs="$2";shift;;
+
+		-tmp)		tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
 
 ### print input
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
+checkreqvar func_in fdir TEs
+checkoptvar tmp
+
+### Remove nifti suffix
+func_in=${func_in%.nii*}
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -33,44 +57,36 @@ cwd=$(pwd)
 cd ${fdir} || exit
 
 #Read and process input
-eprfx=${func_in%_echo-*}_echo-
-esffx=${func_in#*_echo-?}
-func=${func_in%_echo-*}_concat${esffx}
+esfx=$( basename ${func_in#*_echo-?} )
+eprx=$( basename ${func_in%_echo-*}_echo- )
+func=$( basename ${func_in%_echo-*}_concat${esfx} )
 
 ## 01. MEICA
 # 01.1. concat in space
 
-echo "Merging ${func} for MEICA"
-fslmerge -z ${tmp}/${func} $( ls ${tmp}/${eprfx}* | grep ${esffx}.nii.gz )
-
-mkdir ${tmp}/${func}_meica
-
-# Check if there's one or more backups
-bcklist=( $( ls ../*${func}_meica_bck.tar.gz ) )
-# 01.2. Run tedana only if there's no previous backup
-if [[ "${bck}" != "none" ]] && [[ ${bcklist[-1]} ]]
+if [[ ! -e ${tmp}/${func}.nii.gz ]];
 then
-	# If there's a backup, unpack the earnest!
-	echo "Unpacking backup"
-	tar -xzvf ${bcklist[-1]} -C ${tmp}
-	echo "Running tedana to revert to backed up state"
-	tedana -d ${tmp}/${func}.nii.gz -e ${TEs} \
-	--tedpca mdl --out-dir ${tmp}/${func}_meica \
-	--mix ${tmp}/${func}_meica/ica_mixing.tsv --ctab ${tmp}/${func}_meica/ica_decomposition.json
+	echo "Merging ${func} for MEICA"
+	fslmerge -z ${tmp}/${func} $( ls ${tmp}/${eprx}* | grep ${esfx}.nii.gz )
 else
-	echo "No backup file specified or found!"
-	echo "Running tedana"
-	tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica
-	echo "Creating backup"
-	tar -cvf ../$(date +%Y%m%d-%H%M%S)${func}_meica_bck.tar.gz ${tmp}/${func}_meica/ica_mixing.tsv ${tmp}/${func}_meica/ica_decomposition.json
+	echo "Merged ${func} found!"
 fi
+
+replace_and mkdir ${tmp}/${func}_meica
+
+echo "No backup file specified or found!"
+echo "Running tedana"
+tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica
+echo "Creating backup"
+tar -cvf ../$(date +%Y%m%d-%H%M%S)${func}_meica_bck.tar.gz ${tmp}/${func}_meica/ica_mixing.tsv ${tmp}/${func}_meica/ica_decomposition.json
 
 cd ${tmp}/${func}_meica
 
 # 01.4. Orthogonalising good and bad components
 
 echo "Extracting good and bad copmonents"
-python3 ${scriptdir}/20.python_scripts/00.process_tedana_output.py ${tmp}/${func}_meica
+scriptpath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+python3 ${scriptpath}/../20.python_scripts/00.process_tedana_output.py ${tmp}/${func}_meica
 
 echo "Orthogonalising good and bad components in ${func}"
 nacc=$( cat accepted_list.1D )

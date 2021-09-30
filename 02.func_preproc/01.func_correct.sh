@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=./utils.sh
-source $(dirname "$0")/utils.sh
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -49,6 +49,9 @@ printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar func fdir
 checkoptvar voldiscard despike slicetimeinterp tmp
+
+### Remove nifti suffix
+func_in=${func_in%.nii*}
 
 ######################################
 ######### Script starts here #########

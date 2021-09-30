@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=./utils.sh
-source $(dirname "$0")/utils.sh
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -19,6 +19,7 @@ if [[ ( $# -eq 0 ) ]]
 fi
 
 # Preparing the default values for variables
+aref=none
 tmp=.
 
 # Parsing required and optional variables with flags
@@ -44,6 +45,12 @@ printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar anat_in adir
 checkoptvar aref tmp
+
+### Remove nifti suffix
+for var in anat_in aref
+do
+eval "${var}=${!var%.nii*}"
+done
 
 ######################################
 ######### Script starts here #########
@@ -72,9 +79,11 @@ N4BiasFieldCorrection -d 3 -i ${tmp}/${anat}_trunc.nii.gz -o ${tmp}/${anat}_bfc.
 ## 03. Anat coreg between modalities
 if [[ "${aref}" != "none" ]]
 then
+	arefsfx=$( basename ${aref} )
+	arefsfx=${aref#*ses-*_}
 	echo "Flirting ${anat} on ${aref}"
 	flirt -in ${anat} -ref ${aref} -cost normmi -searchcost normmi \
-	-omat ../reg/${anat}2${aref}_fsl.mat -o ../reg/${anat}2${aref}_fsl.nii.gz
+	-omat ../reg/${anat}2${arefsfx}_fsl.mat -o ../reg/${anat}2${arefsfx}_fsl.nii.gz
 fi
 
 cd ${cwd}

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=./utils.sh
-source $(dirname "$0")/utils.sh
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -50,6 +50,12 @@ echo "${printline} " "$@"
 checkreqvar func_in fdir
 checkoptvar pepolar breverse bforward tmp
 
+### Remove nifti suffix
+for var in anat_in breverse bforward
+do
+eval "${var}=${!var%.nii*}"
+done
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -66,8 +72,8 @@ func=$( basename ${func_in%_*} )
 if [[ ${pepolar} == "none" && ${breverse} != "none" && ${bforward} != "none" ]]
 then
 	echo "Preparing PEpolar map computation"
-	if_missing_do stop ${breverse}
-	if_missing_do stop ${bforward}
+	if_missing_do stop ${breverse}.nii.gz
+	if_missing_do stop ${bforward}.nii.gz
 
 	pepolar=${func}_topup
 

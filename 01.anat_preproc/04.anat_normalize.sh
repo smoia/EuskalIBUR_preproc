@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=./utils.sh
-source $(dirname "$0")/utils.sh
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -38,6 +38,12 @@ printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar anat_in adir std mmres
 
+### Remove nifti suffix
+for var in anat_in std
+do
+eval "${var}=${!var%.nii*}"
+done
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -57,9 +63,11 @@ then
 	fslmaths ../reg/${std} -bin ../reg/${std}_mask
 fi
 
+anatsfx=${anat#*ses-*_}
+anatprx=${anat%_${anatsfx}}
 echo "Normalizing ${anat} to ${std}"
 antsRegistration -d 3 -r [../reg/${std}.nii.gz,${anat_in}.nii.gz,1] \
-				 -o [../reg/${anat}2std,../reg/${anat}2std.nii.gz,../reg/std2${anat}.nii.gz] \
+				 -o [../reg/${anat}2std,../reg/${anat}2std.nii.gz,../reg/${anatprx}_std2${anatsfx}.nii.gz] \
 				 -x [../reg/${std}_mask.nii.gz, ${anat_in}_mask.nii.gz] \
 				 -n Linear -u 0 -w [0.005,0.995] \
 				 -t Rigid[0.1] \

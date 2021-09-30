@@ -1,24 +1,53 @@
 #!/usr/bin/env bash
 
-######### FUNCTIONAL 03 for PJMASK
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    31.06.2019
-#########
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
-## Variables
-# functional
-func_in=$1
-# folders
-fdir=$2
-# echo times
-TEs="$3"
+displayhelp() {
+echo "Required:"
+echo "func_in fdir TEs"
+echo "Optional:"
+echo "tmp"
+exit ${1:-0}
+}
 
-tmp=${4:-.}
+# Check if there is input
+
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
+
+# Preparing the default values for variables
+tmp=.
+
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-func_in)	func_in=$2;shift;;
+		-fdir)		fdir=$2;shift;;
+		-TEs)		TEs="$2";shift;;
+
+		-tmp)		tmp=$2;shift;;
+
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
 
 ### print input
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
+checkreqvar func_in fdir TEs
+checkoptvar tmp
+
+### Remove nifti suffix
+func_in=${func_in%.nii*}
+
 ######################################
 ######### Script starts here #########
 ######################################
@@ -28,10 +57,10 @@ cwd=$(pwd)
 cd ${fdir} || exit
 
 #Read and process input
-eprfx=${func_in%_echo-*}_echo-
-esffx=${func_in#*_echo-?}
-func=${func_in%_echo-*}_concat${esffx}
-func_optcom=${func_in%_echo-*}_optcom${esffx}
+esfx=$( basename ${func_in#*_echo-?} )
+eprx=$( basename ${func_in%_echo-*}_echo- )
+func=$( basename ${func_in%_echo-*}_concat${esfx} )
+func_optcom=$( basename ${func_in%_echo-*}_optcom${esfx} )
 
 ## 01. MEICA
 # 01.1. concat in space
@@ -39,7 +68,7 @@ func_optcom=${func_in%_echo-*}_optcom${esffx}
 if [[ ! -e ${tmp}/${func}.nii.gz ]];
 then
 	echo "Merging ${func} for MEICA"
-	fslmerge -z ${tmp}/${func} $( ls ${tmp}/${eprfx}* | grep ${esffx}.nii.gz )
+	fslmerge -z ${tmp}/${func} $( ls ${tmp}/${eprx}* | grep ${esfx}.nii.gz )
 else
 	echo "Merged ${func} found!"
 fi
@@ -47,12 +76,12 @@ fi
 if [[ ! -e ${tmp}/${func_optcom} ]]
 then
 	echo "Running t2smap"
+	cd ${tmp} || exit
 	t2smap -d ${tmp}/${func}.nii.gz -e ${TEs}
 
 	echo "Housekeeping"
 	fslmaths TED.${func}/ts_OC.nii.gz ${tmp}/${func_optcom} -odt float
-	# Remove TED folder
-	rm -rf TED.${func}
+	cd ${fdir} || exit
 fi
 
 # 01.3. Compute outlier fraction if there's more than one TR
@@ -66,7 +95,5 @@ then
 	3dToutcount -mask ${tmp}/${func_optcom}_brain_mask.nii.gz -fraction -polort 5 -legendre ${tmp}/${func_optcom}.nii.gz > ${func_optcom%_bet}_outcount.1D
 	imrm ${tmp}/${func_optcom}_avg ${tmp}/${func_optcom}_brain ${tmp}/${func_optcom}_brain_mask
 fi
-
-rm -rf ${tmp}/*.${func}
 
 cd ${cwd}

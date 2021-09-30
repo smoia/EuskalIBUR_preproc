@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# shellcheck source=./utils.sh
-source $(dirname "$0")/utils.sh
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -43,6 +43,9 @@ printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar anat_in adir
 checkoptvar tmp
+
+### Remove nifti suffix
+anat_in=${anat_in%.nii*}
 
 ######################################
 ######### Script starts here #########
