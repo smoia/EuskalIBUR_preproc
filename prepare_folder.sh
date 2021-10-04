@@ -20,8 +20,9 @@ fi
 
 # Preparing the default values for variables
 overwrite=no
-scriptpath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-stdpath=${scriptpath}/90.template
+scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+[[ ${scriptdir: -1} == / ]] && scriptdir=${scriptdir%/*/} || scriptdir=${scriptdir%/*}
+stdpath=${scriptdir}/90.template
 mmres=no
 
 # Parsing required and optional variables with flags
@@ -91,10 +92,7 @@ replace_and mkdir ${tmp}
 echo "Check derivative project folder"
 if_missing_do mkdir derivatives
 
-if [[ "${overwrite}" == "yes" ]] && [[ -d derivatives/${prjname} ]]
-then
-	rm -rf derivatives/${prjname}
-fi
+[[ "${overwrite}" == "yes" ]] && replace_and mkdir derivatives/${prjname}
 
 if_missing_do mkdir derivatives/${prjname}/sub-${sub}/ses-${ses}/func \
 					derivatives/${prjname}/sub-${sub}/ses-${ses}/anat \
@@ -107,8 +105,8 @@ if [ -e ${stdpath}/${std}_resamp_${mmres}mm.nii.gz ]
 then
 	imcp {stdpath}/${std}_resamp_${mmres}mm.nii.gz reg/${std}_resamp_${mmres}mm.nii.gz
 fi
-imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*.nii.gz derivatives/${prjname}/sub-${sub}/ses-${ses}/func/.
-imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz derivatives/${prjname}/sub-${sub}/ses-${ses}/anat/.
-imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz derivatives/${prjname}/sub-${sub}/ses-${ses}/fmap/.
+imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*.nii.gz ${tmp}/.
+imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz ${tmp}/.
+imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz ${tmp}/.
 
 cd ${cwd}
