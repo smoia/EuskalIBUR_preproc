@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "func_in fdir"
 echo "Optional:"
-echo "anat adir mref aseg pol tmp"
+echo "anat_in adir mref aseg polort tmp"
 exit ${1:-0}
 }
 
@@ -19,11 +19,11 @@ if [[ ( $# -eq 0 ) ]]
 fi
 
 # Preparing the default values for variables
-anat=none
+anat_in=none
 adir=none
 mref=none
 aseg=none
-pol=4
+polort=4
 tmp=.
 
 # Parsing required and optional variables with flags
@@ -34,11 +34,11 @@ do
 		-func_in)	func_in=$2;shift;;
 		-fdir)		fdir=$2;shift;;
 
-		-anat)		anat=$2;shift;;
+		-anat_in)	anat_in=$2;shift;;
 		-adir)		adir=$2;shift;;
 		-mref)		mref=$2;shift;;
 		-aseg)		aseg=$2;shift;;
-		-pol)		pol=$2;shift;;
+		-polort)	polort=$2;shift;;
 		-tmp)		tmp=$2;shift;;
 
 		-h)			displayhelp;;
@@ -52,12 +52,12 @@ done
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar func_in fdir
-checkoptvar anat adir mref aseg pol tmp
+checkoptvar anat_in adir mref aseg polort tmp
 
 ### Remove nifti suffix
 for var in func_in anat mref aseg
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################
@@ -72,6 +72,8 @@ cd ${fdir} || exit
 func=$( basename ${func_in%_*} )
 mref_in=${mref}
 
+if [[ "${adir}" != "none" ]]; then anat_in=${adir}/${anat_in}; fi
+anat=$( basename ${anat_in} )
 asegsfx=$( basename ${aseg} )
 asegsfx=${aseg#*ses-*_}
 mrefsfx=$( basename ${mref} )
@@ -92,10 +94,10 @@ anat2mref=${anat}2${mrefsfx}0GenericAffine
 if [[ ! -e "../reg/${anat2mref}.mat" ]]
 then
 	echo "Coregistering ${func} to ${anat}"
-	flirt -in ${anat}_brain -ref ${mref} -out ${tmp}/${anat}2${mrefsfx} -omat ${tmp}/${anat}2${mrefsfx}_fsl.mat \
+	flirt -in ${anat_in}_brain -ref ${mref} -out ${tmp}/${anat}2${mrefsfx} -omat ${tmp}/${anat}2${mrefsfx}_fsl.mat \
 	-searchry -90 90 -searchrx -90 90 -searchrz -90 90
 	echo "Affining for ANTs"
-	c3d_affine_tool -ref ${mref} -src ${anat}_brain \
+	c3d_affine_tool -ref ${mref} -src ${anat_in}_brain \
 	${tmp}/${anat}2${mrefsfx}_fsl.mat -fsl2ras -oitk ${tmp}/${anat2mref}.mat
 	anat2mref=${tmp}/${anat2mref}
 else
@@ -118,12 +120,12 @@ fi
 #Plot some grayplots!
 3dGrayplot -input ${func_in}.nii.gz -mask ${seg}.nii.gz \
 		   -prefix ${func}_gp_PVO.png -dimen 1800 1200 \
-		   -polort ${pol} -pvorder -percent -range 3
+		   -polort ${polort} -pvorder -percent -range 3
 3dGrayplot -input ${func_in}.nii.gz -mask ${seg}.nii.gz \
 		   -prefix ${func}_gp_IJK.png -dimen 1800 1200 \
-		   -polort ${pol} -ijkorder -percent -range 3
+		   -polort ${polort} -ijkorder -percent -range 3
 3dGrayplot -input ${func_in}.nii.gz -mask ${seg}.nii.gz \
 		   -prefix ${func}_gp_peel.png -dimen 1800 1200 \
-		   -polort ${pol} -peelorder -percent -range 3
+		   -polort ${polort} -peelorder -percent -range 3
 
 cd ${cwd}

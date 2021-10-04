@@ -54,7 +54,7 @@ checkoptvar mmres aref tmp
 ### Remove nifti suffix
 for var in func_in anat mref std aref
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################

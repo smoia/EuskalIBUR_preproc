@@ -71,7 +71,7 @@ checkoptvar aseg anat adir applynuisance motthr outthr polort den_motreg den_det
 ### Remove nifti suffix
 for var in func_in mref aseg anat
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################

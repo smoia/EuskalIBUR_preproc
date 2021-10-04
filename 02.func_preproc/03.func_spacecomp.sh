@@ -55,7 +55,7 @@ checkoptvar anat mref aseg antsaffine tmp
 ### Remove nifti suffix
 for var in func_in anat mref aseg
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################

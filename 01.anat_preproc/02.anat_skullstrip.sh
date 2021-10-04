@@ -51,7 +51,7 @@ checkoptvar mask aref c3dsource
 ### Remove nifti suffix
 for var in anat_in mask aref
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################

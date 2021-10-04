@@ -49,7 +49,7 @@ checkoptvar anat adir
 ### Remove nifti suffix
 for var in sbrf_in anat
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################
