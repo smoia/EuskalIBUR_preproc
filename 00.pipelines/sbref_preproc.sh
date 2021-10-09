@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "sub ses wdr"
 echo "Optional:"
-echo "anatsfx scriptdir tmp debug"
+echo "anat scriptdir tmp debug"
 exit ${1:-0}
 }
 
@@ -19,7 +19,7 @@ if [[ ( $# -eq 0 ) ]]
 fi
 
 # Preparing the default values for variables
-anatsfx=T2w
+anat=sub-${sub}_ses-01_T2w
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 [[ ${scriptdir: -1} == / ]] && scriptdir=${scriptdir%/*/} || scriptdir=${scriptdir%/*}
@@ -35,7 +35,7 @@ do
 		-ses)		ses=$2;shift;;
 		-wdr)		wdr=$2;shift;;
 
-		-anatsfx)	anatsfx=$2;shift;;
+		-anat)		anat=$2;shift;;
 		-scriptdir)	scriptdir=$2;shift;;
 		-tmp)		tmp=$2;shift;;
 		-debug)		debug=yes;;
@@ -51,17 +51,16 @@ done
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar sub ses wdr
-checkoptvar anatsfx scriptdir tmp debug
+checkoptvar anat scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
 ### Remove nifti suffix
-anatsfx=${anatsfx%.nii*}
+anat=${anat%.nii*}
 
 #Derived variables
 fileprx=sub-${sub}_ses-${ses}
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
-anat=${fileprx}_${anatsfx}
 adir=${wdr}/sub-${sub}/ses-${ses}/anat
 fmapdir=${wdr}/sub-${sub}/ses-${ses}/fmap
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
@@ -111,6 +110,9 @@ echo "************************************"
 ${scriptdir}/11.sbref_spacecomp.sh -sbref_in ${sbrf}_tpp -anat ${anat} \
 								   -fdir ${fdir} -adir ${adir} -tmp ${tmp}
 
+sbrfsfx=$( basename ${sbrf%_*} )
+sbrfsfx=${sbrfsfx#*ses-*_}
+
 # Copy this sbref to reg folder
 echo "imcp ${fdir}/${sbrf}_tpp ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref"
 imcp ${fdir}/${sbrf}_tpp ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
@@ -118,16 +120,16 @@ echo "imcp ${fdir}/${sbrf}_brain ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbr
 imcp ${fdir}/${sbrf}_brain ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain
 echo "imcp ${fdir}/${sbrf}_brain_mask ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain_mask"
 imcp ${fdir}/${sbrf}_brain_mask ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain_mask
-echo "imcp ${fdir}/${anat}2${sbrf}.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sub-${sub}_sbref"
-imcp ${fdir}/${anat}2${sbrf}.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sub-${sub}_sbref
+echo "imcp ${fdir}/${anat}2${sbrfsfx}.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref"
+imcp ${fdir}/${anat}2${sbrfsfx}.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref
 
 echo "mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup"
 mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup
 echo "cp -R ${fdir}/${sbrf}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/."
 cp -R ${fdir}/${sbrf}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/.
-echo "cp ${fdir}/${anat}2${sbrf}_fsl.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sub-${sub}_sbref_fsl.mat"
-cp ${fdir}/${anat}2${sbrf}_fsl.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sub-${sub}_sbref_fsl.mat
-echo "cp ${fdir}/${anat}2${sbrf}0GenericAffine.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sub-${sub}_sbref0GenericAffine.mat"
-cp ${fdir}/${anat}2${sbrf}0GenericAffine.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sub-${sub}_sbref0GenericAffine.mat
+echo "cp ${fdir}/${anat}2${sbrfsfx}_fsl.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref_fsl.mat"
+cp ${fdir}/${anat}2${sbrfsfx}_fsl.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref_fsl.mat
+echo "cp ${fdir}/${anat}2${sbrfsfx}0GenericAffine.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref0GenericAffine.mat"
+cp ${fdir}/${anat}2${sbrfsfx}0GenericAffine.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref0GenericAffine.mat
 
 [[ ${debug} == "yes" ]] && set +x

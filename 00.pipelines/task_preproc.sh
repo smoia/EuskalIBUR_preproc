@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "sub ses task TEs wdr"
 echo "Optional:"
-echo "anatsfx asegsfx voldiscard sbref slicetimeinterp despike scriptdir tmp debug"
+echo "anatsfx asegsfx voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug"
 exit ${1:-0}
 }
 
@@ -23,12 +23,15 @@ anatsfx=none
 asegsfx=none
 voldiscard=10
 slicetimeinterp=no
+despike=no
 sbref=default
+mask=default
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 [[ ${scriptdir: -1} == / ]] && scriptdir=${scriptdir%/*/} || scriptdir=${scriptdir%/*}
 scriptdir=${scriptdir}/02.func_preproc
 debug=no
+fwhm=none
 
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
@@ -45,6 +48,8 @@ do
 		-asegsfx)			asegsfx=$2;shift;;
 		-voldiscard)		voldiscard=$2;shift;;
 		-sbref)				sbref=$2;shift;;
+		-mask)				mask=$2;shift;;
+		-fwhm)				fwhm=$2;shift;;
 		-slicetimeinterp)	slicetimeinterp=yes;;
 		-despike)			despike=yes;;
 		-scriptdir)			scriptdir=$2;shift;;
@@ -63,7 +68,8 @@ printline=$( basename -- $0 )
 echo "${printline} " "$@"
 checkreqvar sub ses task TEs wdr
 [[ ${sbref} == "default " ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
-checkoptvar anatsfx asegsfx voldiscard sbref slicetimeinterp despike scriptdir tmp debug
+[[ ${mask} == "default " ]] && mask=${sbref}_brain_mask
+checkoptvar anatsfx asegsfx voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -77,7 +83,6 @@ done
 aTEs=( ${TEs} )
 nTE=${#aTEs[@]}
 fileprx=sub-${sub}_ses-${ses}
-mask=${sbref}_brain_mask
 [[ ${anatsfx} != none ]] && anat=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${anatsfx} || anat=none
 [[ ${asegsfx} != none ]] && aseg=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${asegsfx} || aseg=none
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
@@ -176,38 +181,38 @@ do
 	${scriptdir}/02.func_pepolar.sh -func_in ${bold}_bet -fdir ${fdir} \
 									-pepolar ${sbref}_topup -tmp ${tmp}
 
-	echo "************************************"
-	echo "*** Func smoothing ${task} BOLD ${e}"
-	echo "************************************"
-	echo "************************************"
+	boldout=$( basename ${bold} )
+	if [[ ${fwhm} != "none" ]]
+	then
 
-	${scriptdir}/08.func_smooth.sh -func_in ${bold}_tpp -fdir ${fdir} -fwhm 5 -mask ${mask} -tmp ${tmp}
-	echo "3dcalc -a ${tmp}/${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${bold}_native_preprocessed.nii.gz -short -gscale"
-	3dcalc -a ${tmp}/${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${bold}_native_preprocessed.nii.gz -short -gscale
+		echo "************************************"
+		echo "*** Func smoothing ${task} BOLD ${e}"
+		echo "************************************"
+		echo "************************************"
+
+		${scriptdir}/08.func_smooth.sh -func_in ${bold}_tpp -fdir ${fdir} -fwhm ${fwhm} -mask ${mask} -tmp ${tmp}
+		echo "3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale"
+		3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale
+		boldsource=${bold}_sm
+	else
+		echo "3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale"
+		3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale
+		boldsource=${bold}_tpp
+	fi
 
 	echo "************************************"
 	echo "*** Func greyplot ${task} BOLD echo ${e} (post)"
 	echo "************************************"
 	echo "************************************"
-	${scriptdir}/12.func_grayplot.sh -func_in ${bold}_sm -fdir ${fdir} -anat ${anat} \
+	${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat ${anat} \
 									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
-	echo "mv ${fdir}/${bold}_sm_gp_PVO.png ${fdir}/00.${bold}_native_preprocessed_gp_PVO.png"
-	mv ${fdir}/${bold}_sm_gp_PVO.png ${fdir}/00.${bold}_native_preprocessed_gp_PVO.png
-	echo "mv ${fdir}/${bold}_sm_gp_IJK.png ${fdir}/00.${bold}_native_preprocessed_gp_IJK.png"
-	mv ${fdir}/${bold}_sm_gp_IJK.png ${fdir}/00.${bold}_native_preprocessed_gp_IJK.png
-	echo "mv ${fdir}/${bold}_sm_gp_peel.png ${fdir}/00.${bold}_native_preprocessed_gp_peel.png"
-	mv ${fdir}/${bold}_sm_gp_peel.png ${fdir}/00.${bold}_native_preprocessed_gp_peel.png
 
-	# echo "************************************"
-	# echo "*** Func SPC ${task} BOLD ${e}"
-	# echo "************************************"
-	# echo "************************************"
-
-	# ${scriptdir}/09.func_spc.sh ${bold}_sm -fdir ${fdir} -tmp ${tmp}
-
-	# # Rename output
-	# echo "immv ${tmp}/${bold}_SPC ${fdir}/01.${bold}_native_SPC_preprocessed"
-	# immv ${tmp}/${bold}_SPC ${fdir}/01.${bold}_native_SPC_preprocessed
+	echo "mv ${bold}_sm_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png"
+	mv ${bold}_sm_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png
+	echo "mv ${bold}_sm_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png"
+	mv ${bold}_sm_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png
+	echo "mv ${bold}_sm_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png"
+	mv ${bold}_sm_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png
 
 done
 

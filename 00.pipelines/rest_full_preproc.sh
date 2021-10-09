@@ -1,44 +1,89 @@
 #!/usr/bin/env bash
 
-######### Task preproc for EuskalIBUR
-# Author:  Stefano Moia
-# Version: 1.0
-# Date:    25.08.2020
-#########
+# shellcheck source=../utils.sh
+source $(dirname "$0")/../utils.sh
 
+displayhelp() {
+echo "Required:"
+echo "sub ses run TEs wdr"
+echo "Optional:"
+echo "anatsfx asegsfx voldiscard sbref slicetimeinterp despike fwhm scriptdir tmp debug"
+exit ${1:-0}
+}
 
-sub=$1
-ses=$2
-run=$3
-wdr=$4
+# Check if there is input
 
-anat=${5:-none}
-aseg=${6:-none}
+if [[ ( $# -eq 0 ) ]]
+	then
+	displayhelp
+fi
 
-fdir=$7
+# Preparing the default values for variables
+anatsfx=none
+asegsfx=none
+voldiscard=10
+slicetimeinterp=no
+sbref=default
+tmp=.
+scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+[[ ${scriptdir: -1} == / ]] && scriptdir=${scriptdir%/*/} || scriptdir=${scriptdir%/*}
+scriptdir=${scriptdir}/02.func_preproc
+debug=no
+fwhm=none
 
-vdsc=$8
+# Parsing required and optional variables with flags
+# Also checking if a flag is the help request or the version
+while [ ! -z "$1" ]
+do
+	case "$1" in
+		-sub)		sub=$2;shift;;
+		-ses)		ses=$2;shift;;
+		-run)		run=$2;shift;;
+		-TEs)		TEs="$2";shift;;
+		-wdr)		wdr=$2;shift;;
 
-TEs="$9"
-nTE=${10}
+		-anatsfx)			anatsfx=$2;shift;;
+		-asegsfx)			asegsfx=$2;shift;;
+		-voldiscard)		voldiscard=$2;shift;;
+		-sbref)				sbref=$2;shift;;
+		-fwhm)				fwhm=$2;shift;;
+		-slicetimeinterp)	slicetimeinterp=yes;;
+		-despike)			despike=yes;;
+		-scriptdir)			scriptdir=$2;shift;;
+		-tmp)				tmp=$2;shift;;
+		-debug)				debug=yes;;
 
-siot=${11}
-
-dspk=${12}
-
-scriptdir=${13:-/scripts}
-
-tmp=${14:-/tmp}
-tmp=${tmp}/${sub}_${ses}_rest_run-${run}
-
-# This is the absolute sbref. Don't change it.
-sbrf=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
-mask=${sbrf}_brain_mask
-flpr=sub-${sub}_ses-${ses}
+		-h)			displayhelp;;
+		-v)			version;exit 0;;
+		*)			echo "Wrong flag: $1";displayhelp 1;;
+	esac
+	shift
+done
 
 ### print input
 printline=$( basename -- $0 )
 echo "${printline} " "$@"
+checkreqvar sub ses run TEs wdr
+[[ ${sbref} == "default " ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
+[[ ${mask} == "default " ]] && mask=${sbref}_brain_mask
+checkoptvar anatsfx asegsfx voldiscard sbref slicetimeinterp despike scriptdir tmp debug
+
+[[ ${debug} == "yes" ]] && set -x
+
+### Remove nifti suffix
+for var in anatsfx asegsfx
+do
+	eval "${var}=${!var%.nii*}"
+done
+
+#Derived variables
+aTEs=( ${TEs} )
+nTE=${#aTEs[@]}
+fileprx=sub-${sub}_ses-${ses}
+[[ ${anatsfx} != none ]] && anat=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${anatsfx} || anat=none
+[[ ${asegsfx} != none ]] && aseg=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${asegsfx} || aseg=none
+fdir=${wdr}/sub-${sub}/ses-${ses}/func
+[[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
 ######################################
 #########    Task preproc    #########
 ######################################
@@ -49,43 +94,28 @@ mkdir ${tmp}
 for e in $( seq 1 ${nTE} )
 do
 	echo "************************************"
-	echo "*** Copy rest run ${run} BOLD echo ${e}"
-	echo "************************************"
-	echo "************************************"
-
-	echo "bold=${flpr}_task-rest_run-${run}_echo-${e}_bold"
-	bold=${flpr}_task-rest_run-${run}_echo-${e}_bold
-
-	echo "imcp ${wdr}/sub-${sub}/ses-${ses}/func/${bold} ${tmp}/${bold}"
-	imcp ${wdr}/sub-${sub}/ses-${ses}/func/${bold} ${tmp}/${bold}
-
-	if [ ! -e ${tmp}/${bold}.nii.gz ]
-	then
-		echo "Something went wrong with the copy"
-		exit
-	else
-		echo "File copied, start preprocessing"
-	fi
-
-	echo "************************************"
 	echo "*** Func correct rest run ${run} BOLD echo ${e}"
 	echo "************************************"
 	echo "************************************"
 
-	echo "bold=${flpr}_task-rest_run-${run}_echo-${e}_bold"
-	bold=${flpr}_task-rest_run-${run}_echo-${e}_bold
-	${scriptdir}/02.func_preproc/01.func_correct.sh ${bold} ${fdir} ${vdsc} ${dspk} ${siot} ${tmp}
+	echo "bold=${fileprx}_task-rest_run-${run}_echo-${e}_bold"
+	bold=${fileprx}_task-rest_run-${run}_echo-${e}_bold
+	${scriptdir}/01.func_correct.sh -func_in ${bold} -fdir ${fdir} \
+									-voldiscard ${voldiscard} \
+									-despike ${despike} \
+									-slicetimeinterp ${slicetimeinterp} -tmp ${tmp}
 done
 
 echo "************************************"
-echo "*** Func spacecomp rest run ${run} BOLD echo 1"
+echo "*** Func spacecomp rest run ${run} echo 1"
 echo "************************************"
 echo "************************************"
 
-echo "fmat=${flpr}_task-rest_run-${run}_echo-1_bold"
-fmat=${flpr}_task-rest_run-${run}_echo-1_bold
+echo "fmat=${fileprx}_task-rest_run-${run}_echo-1_bold"
+fmat=${fileprx}_task-rest_run-${run}_echo-1_bold
 
-${scriptdir}/02.func_preproc/03.func_spacecomp.sh ${fmat}_cr ${fdir} ${anat} ${sbrf} none ${aseg} ${tmp}
+${scriptdir}/03.func_spacecomp.sh -func_in ${fmat}_cr -fdir ${fdir} -anat ${anat} \
+								  -mref ${sbref} -aseg ${aseg} -tmp ${tmp}
 
 for e in $( seq 1 ${nTE} )
 do
@@ -94,17 +124,19 @@ do
 	echo "************************************"
 	echo "************************************"
 
-	echo "bold=${flpr}_task-rest_run-${run}_echo-${e}_bold_cr"
-	bold=${flpr}_task-rest_run-${run}_echo-${e}_bold_cr
-	${scriptdir}/02.func_preproc/04.func_realign.sh ${bold} ${fmat} ${mask} ${fdir} ${sbrf} none ${tmp}
+	echo "bold=${fileprx}_task-rest_run-${run}_echo-${e}_bold_cr"
+	bold=${fileprx}_task-rest_run-${run}_echo-${e}_bold_cr
+	${scriptdir}/04.func_realign.sh -func_in ${bold} -fmat ${fmat} -mask ${mask} \
+									-fdir ${fdir} -mref ${sbref} -tmp ${tmp}
 
 	echo "************************************"
 	echo "*** Func greyplot rest run ${run} BOLD echo ${e} (pre)"
 	echo "************************************"
 	echo "************************************"
-	echo "bold=${flpr}_task-rest_run-${run}_echo-${e}_bold_bet"
-	bold=${flpr}_task-rest_run-${run}_echo-${e}_bold_bet
-	${scriptdir}/02.func_preproc/12.func_grayplot.sh ${bold} ${fdir} ${anat} ${sbrf} ${aseg} 4 ${tmp}
+	echo "bold=${fileprx}_task-rest_run-${run}_echo-${e}_bold_bet"
+	bold=${fileprx}_task-rest_run-${run}_echo-${e}_bold_bet
+	${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat ${anat} \
+									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
 done
 
 echo "************************************"
@@ -112,17 +144,14 @@ echo "*** Func MEICA rest run ${run} BOLD"
 echo "************************************"
 echo "************************************"
 
-${scriptdir}/02.func_preproc/05.func_meica.sh ${fmat}_bet ${fdir} "${TEs}" none ${tmp} ${scriptdir}
+${scriptdir}/05.func_meica.sh -func_in ${fmat}_bet -fdir ${fdir} -TEs "${TEs}" -tmp ${tmp}
 
 echo "************************************"
 echo "*** Func T2smap rest run ${run} BOLD"
 echo "************************************"
 echo "************************************"
 # Since t2smap gives different results from tedana, prefer the former for optcom
-${scriptdir}/02.func_preproc/06.func_optcom.sh ${fmat}_bet ${fdir} "${TEs}" ${tmp}
-
-echo "fmat=${flpr}_task-rest_run-${run}_concat_bold"
-fmat=${flpr}_task-rest_run-${run}_concat_bold
+${scriptdir}/06.func_optcom.sh -func_in ${fmat}_bet -fdir ${fdir} -TEs "${TEs}" -tmp ${tmp}
 
 # As it's rest_run-${run}, don't skip anything!
 # Also repeat everything twice for meica-denoised and not
@@ -132,77 +161,61 @@ do
 	then
 		e=echo-${e}
 	fi
-	echo "bold=${flpr}_task-rest_run-${run}_${e}_bold"
-	bold=${flpr}_task-rest_run-${run}_${e}_bold
+	echo "bold=${fileprx}_task-rest_run-${run}_${e}_bold"
+	bold=${fileprx}_task-rest_run-${run}_${e}_bold
 	
 	echo "************************************"
 	echo "*** Func Nuiscomp rest run ${run} BOLD ${e}"
 	echo "************************************"
 	echo "************************************"
 
-	${scriptdir}/02.func_preproc/07.func_nuiscomp.sh ${bold}_bet ${fmat} ${aseg} ${anat} ${sbrf} ${fdir} ${adir} yes 0.3 0.05 4 yes yes yes no ${tmp}
-	echo "immv ${tmp}/${bold}_den ${tmp}/${bold}_denmeica"
-	immv ${tmp}/${bold}_den ${tmp}/${bold}_denmeica
-	${scriptdir}/02.func_preproc/07.func_nuiscomp.sh ${bold}_bet ${fmat} ${aseg} ${anat} ${sbrf} ${fdir} ${adir} yes 0.3 0.05 4 yes yes no no ${tmp}
+	${scriptdir}/07.func_nuiscomp.sh -func_in ${bold}_bet -fmat ${fmat} \
+									 -mref ${sbref} -fdir ${fdir} \
+									 -anat ${anat} -aseg ${aseg} -polort 4 \
+									 -den_motreg -den_detrend \
+									 -applynuisance -tmp ${tmp}
 	
 	echo "************************************"
 	echo "*** Func Pepolar rest run ${run} BOLD ${e}"
 	echo "************************************"
 	echo "************************************"
 
-	${scriptdir}/02.func_preproc/02.func_pepolar.sh ${bold}_denmeica ${fdir} ${sbrf}_topup none none ${tmp}
-	echo "immv ${tmp}/${bold}_tpp ${tmp}/${bold}_tppmeica"
-	immv ${tmp}/${bold}_tpp ${tmp}/${bold}_tppmeica
-	${scriptdir}/02.func_preproc/02.func_pepolar.sh ${bold}_den ${fdir} ${sbrf}_topup none none ${tmp}
+	${scriptdir}/02.func_pepolar.sh -func_in ${bold}_den -fdir ${fdir} \
+									-pepolar ${sbref}_topup -tmp ${tmp}
+
+	boldout=$( basename ${bold} )
+	if [[ ${fwhm} != "none" ]]
+	then
+
+		echo "************************************"
+		echo "*** Func smoothing rest run ${run} BOLD ${e}"
+		echo "************************************"
+		echo "************************************"
+
+		${scriptdir}/08.func_smooth.sh -func_in ${bold}_tpp -fdir ${fdir} -fwhm ${fwhm} -mask ${mask} -tmp ${tmp}
+		echo "3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale"
+		3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale
+		boldsource=${bold}_sm
+	else
+		echo "3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale"
+		3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale
+		boldsource=${bold}_tpp
+	fi
 
 	echo "************************************"
-	echo "*** Func smoothing rest run ${run} BOLD ${e}"
+	echo "*** Func greyplot rest run ${run} BOLD echo ${e} (post)"
 	echo "************************************"
 	echo "************************************"
+	${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat ${anat} \
+									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
 
-	${scriptdir}/02.func_preproc/08.func_smooth.sh ${bold}_tppmeica ${fdir} 5 ${mask} ${tmp}
-	echo "3dcalc -a ${tmp}/${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/02.${bold}_native_meica_preprocessed.nii.gz -short -gscale"
-	3dcalc -a ${tmp}/${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/02.${bold}_native_meica_preprocessed.nii.gz -short -gscale
-	echo "immv ${tmp}/${bold}_sm ${tmp}/${bold}_smmeica"
-	immv ${tmp}/${bold}_sm ${tmp}/${bold}_smmeica
-	${scriptdir}/02.func_preproc/08.func_smooth.sh ${bold}_tpp ${fdir} 5 ${mask} ${tmp}
-	echo "3dcalc -a ${tmp}/${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${bold}_native_preprocessed.nii.gz -short -gscale"
-	3dcalc -a ${tmp}/${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${bold}_native_preprocessed.nii.gz -short -gscale
-
-	echo "************************************"
-	echo "*** Func greyplot rest run ${run} BOLD ${e} (post)"
-	echo "************************************"
-	echo "************************************"
-	${scriptdir}/02.func_preproc/12.func_grayplot.sh ${bold}_smmeica ${fdir} ${anat} ${sbrf} ${aseg} 4 ${tmp}
-	echo "mv ${fdir}/${bold}_smmeica_gp_PVO.png ${fdir}/02.${bold}_native_meica_preprocessed_gp_PVO.png"
-	mv ${fdir}/${bold}_smmeica_gp_PVO.png ${fdir}/02.${bold}_native_meica_preprocessed_gp_PVO.png
-	echo "mv ${fdir}/${bold}_smmeica_gp_IJK.png ${fdir}/02.${bold}_native_meica_preprocessed_gp_IJK.png"
-	mv ${fdir}/${bold}_smmeica_gp_IJK.png ${fdir}/02.${bold}_native_meica_preprocessed_gp_IJK.png
-	echo "mv ${fdir}/${bold}_smmeica_gp_peel.png ${fdir}/02.${bold}_native_meica_preprocessed_gp_peel.png"
-	mv ${fdir}/${bold}_smmeica_gp_peel.png ${fdir}/02.${bold}_native_meica_preprocessed_gp_peel.png
-	${scriptdir}/02.func_preproc/12.func_grayplot.sh ${bold}_sm ${fdir} ${anat} ${sbrf} ${aseg} 4 ${tmp}
-	echo "mv ${fdir}/${bold}_sm_gp_PVO.png ${fdir}/00.${bold}_native_preprocessed_gp_PVO.png"
-	mv ${fdir}/${bold}_sm_gp_PVO.png ${fdir}/00.${bold}_native_preprocessed_gp_PVO.png
-	echo "mv ${fdir}/${bold}_sm_gp_IJK.png ${fdir}/00.${bold}_native_preprocessed_gp_IJK.png"
-	mv ${fdir}/${bold}_sm_gp_IJK.png ${fdir}/00.${bold}_native_preprocessed_gp_IJK.png
-	echo "mv ${fdir}/${bold}_sm_gp_peel.png ${fdir}/00.${bold}_native_preprocessed_gp_peel.png"
-	mv ${fdir}/${bold}_sm_gp_peel.png ${fdir}/00.${bold}_native_preprocessed_gp_peel.png
-
-	# echo "************************************"
-	# echo "*** Func SPC rest run ${run} BOLD ${e}"
-	# echo "************************************"
-	# echo "************************************"
-
-	# ${scriptdir}/02.func_preproc/09.func_spc.sh ${bold}_smmeica ${fdir} ${tmp}
-	# echo "immv ${tmp}/${bold}_SPC ${fdir}/03.${bold}_native_meica_SPC_preprocessed"
-	# immv ${tmp}/${bold}_SPC ${fdir}/03.${bold}_native_meica_SPC_preprocessed
-	# ${scriptdir}/02.func_preproc/09.func_spc.sh ${bold}_sm ${fdir} ${tmp}
-
-	# # Rename output
-	# echo "immv ${tmp}/${bold}_SPC ${fdir}/01.${bold}_native_SPC_preprocessed"
-	# immv ${tmp}/${bold}_SPC ${fdir}/01.${bold}_native_SPC_preprocessed
+	echo "mv ${bold}_sm_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png"
+	mv ${bold}_sm_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png
+	echo "mv ${bold}_sm_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png"
+	mv ${bold}_sm_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png
+	echo "mv ${bold}_sm_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png"
+	mv ${bold}_sm_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png
 
 done
 
-echo "rm -rf ${tmp}"
-rm -rf ${tmp}
+[[ ${debug} == "yes" ]] && set +x

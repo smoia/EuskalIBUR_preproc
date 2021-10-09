@@ -117,13 +117,13 @@ fi
 
 #Plot some grayplots!
 3dGrayplot -input ${func_in}.nii.gz -mask ${seg}.nii.gz \
-		   -prefix ${func}_gp_PVO.png -dimen 1800 1200 \
+		   -prefix ${tmp}/${func}_gp_PVO.png -dimen 1800 1200 \
 		   -polort ${pol} -pvorder -percent -range 3
 3dGrayplot -input ${func_in}.nii.gz -mask ${seg}.nii.gz \
-		   -prefix ${func}_gp_IJK.png -dimen 1800 1200 \
+		   -prefix ${tmp}/${func}_gp_IJK.png -dimen 1800 1200 \
 		   -polort ${pol} -ijkorder -percent -range 3
 3dGrayplot -input ${func_in}.nii.gz -mask ${seg}.nii.gz \
-		   -prefix ${func}_gp_peel.png -dimen 1800 1200 \
+		   -prefix ${tmp}/${func}_gp_peel.png -dimen 1800 1200 \
 		   -polort ${pol} -peelorder -percent -range 3
 
 cd ${cwd}
