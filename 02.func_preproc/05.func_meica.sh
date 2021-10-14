@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../utils.sh
-source $(dirname "$0")/../utils.sh
+source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -21,6 +21,9 @@ fi
 # Preparing the default values for variables
 tmp=.
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -39,9 +42,7 @@ do
 	shift
 done
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
+# Check input
 checkreqvar func_in fdir TEs
 checkoptvar tmp
 
@@ -74,11 +75,8 @@ fi
 
 replace_and mkdir ${tmp}/${func}_meica
 
-echo "No backup file specified or found!"
 echo "Running tedana"
 tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica
-echo "Creating backup"
-tar -cvf ../$(date +%Y%m%d-%H%M%S)${func}_meica_bck.tar.gz ${tmp}/${func}_meica/ica_mixing.tsv ${tmp}/${func}_meica/ica_decomposition.json
 
 cd ${tmp}/${func}_meica
 
@@ -86,25 +84,25 @@ cd ${tmp}/${func}_meica
 
 echo "Extracting good and bad copmonents"
 scriptpath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-python3 ${scriptpath}/../20.python_scripts/00.process_tedana_output.py ${tmp}/${func}_meica
+python3 ${scriptpath}/05b.process_tedana_output.py ${tmp}/${func}_meica
 
 echo "Orthogonalising good and bad components in ${func}"
 nacc=$( cat accepted_list.1D )
 nrej=$( cat rejected_list.1D )
 
 # Store some files for data check or later use
-if [[ -d "${fdir}/${func}_meica" ]]; then rm -rf ${fdir}/${func}_meica; fi
-mkdir ${fdir}/${func}_meica ${fdir}/${func}_meica/figures
+replace_and mkdir ${fdir}/${func}_meica ${fdir}/${func}_meica/figures
 
-cp accepted_list.1D rejected_list.1D accepted_list_by_variance.1D rejected_list_by_variance.1D ${fdir}/${func}_meica/.
+cp accepted_list.1D ignored_list.1D rejected_list.1D accepted_list_by_variance.1D \
+   ignored_list_by_variance.1D rejected_list_by_variance.1D ${fdir}/${func}_meica/.
 cp adaptive_mask.nii.gz ica_decomposition.json ica_mixing_orig.tsv ica_mixing.tsv ${fdir}/${func}_meica/.
-cp -r figures ${fdir}/${func}_meica/figures/.
+cp -r figures ${fdir}/${func}_meica/figures
 
 1dcat ica_mixing.tsv"[$nacc]" > accepted.1D
 1dcat ica_mixing.tsv"[$nrej]" > rej.tr.1D
 1dtranspose rej.tr.1D > rejected.1D
 
 3dTproject -ort accepted.1D -polort -1 -prefix ${tmp}/tr.1D -input rejected.1D -overwrite
-1dtranspose ${tmp}/tr.1D > ${fdir}/${func_in%_*}_rej_ort.1D
+1dtranspose ${tmp}/tr.1D > ${fdir}/$( basename ${func_in%_*} )_rej_ort.1D
 
 cd ${cwd}

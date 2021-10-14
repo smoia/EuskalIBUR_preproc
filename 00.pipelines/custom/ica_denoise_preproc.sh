@@ -26,7 +26,7 @@ run_sbref=yes
 anat1sfx=acq-uni_T1w
 anat2sfx=T2w
 TEs="10.6 28.69 46.78 64.87 82.96"
-tasks="motor simon pinel breathhold rest_run-01 rest_run-02 rest_run-03 rest_run-04"  #none
+tasks="motor simon pinel rest_run-01"  #none
 
 std=MNI152_T1_1mm_brain
 mmres=2.5
@@ -275,17 +275,8 @@ then
 		runfuncpreproc="${runfuncpreproc} -wdr ${wdr} -anatsfx ${anatsfx} -asegsfx ${asegsfx}"
 		runfuncpreproc="${runfuncpreproc} -voldiscard ${voldiscard} -slicetimeinterp ${slicetimeinterp}"
 		runfuncpreproc="${runfuncpreproc} -sbref ${sbref}"
-		runfuncpreproc="${runfuncpreproc} -mask ${mask} -fwhm ${fwhm} -tmp ${tmp}"
-		runfuncpreproc="${runfuncpreproc} -den_motreg -den_detrend"
-		
-		if [[ ${task} != "breathhold" ]]
-		then
-			runfuncpreproc="${runfuncpreproc} -den_meica"
-			if [[ ${task} == *"rest"* ]]
-			then
-				runfuncpreproc="${runfuncpreproc} -applynuisance"
-			fi
-		fi
+		runfuncpreproc="${runfuncpreproc} -mask ${mask} -fwhm 5 -tmp ${tmp}"
+		runfuncpreproc="${runfuncpreproc} -den_motreg"
 
 		echo "# Generating the command:"
 		echo ""
