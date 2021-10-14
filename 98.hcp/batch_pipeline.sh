@@ -34,11 +34,11 @@ do
 	joblist1=${joblist1}cp_pp_${sub}_01,
 
 	rm ${wdr}/../LogFiles/ica_denoise_preproc_${sub}_01
-	qsub -q long.q -N "cp_pp_${sub}_01" \
+	qsub -q long.q -N "id_pp_${sub}_01" \
 	-o ${wdr}/../LogFiles/ica_denoise_preproc_${sub}_01 \
 	-e ${wdr}/../LogFiles/ica_denoise_preproc_${sub}_01 \
 	${wdr}/98.hcp/run_ica_denoise_preproc.sh ${sub} 01
-	joblist2=${joblist2}cp_pp_${sub}_01,
+	joblist2=${joblist2}id_pp_${sub}_01,
 done
 
 joblist1=${joblist1::-1}
@@ -56,7 +56,7 @@ do
 		${wdr}/98.hcp/run_cvr_pressure_preproc.sh ${sub} ${ses}
 
 		rm ${wdr}/../LogFiles/ica_denoise_preproc_${sub}_${ses}
-		qsub -q long.q -N "cp_pp_${sub}_${ses}" \
+		qsub -q long.q -N "id_pp_${sub}_${ses}" \
 		-hold_jid "${joblist2}" \
 		-o ${wdr}/../LogFiles/ica_denoise_preproc_${sub}_${ses} \
 		-e ${wdr}/../LogFiles/ica_denoise_preproc_${sub}_${ses} \
@@ -72,7 +72,7 @@ qsub -q long.q -N "cp_pp_010_11" \
 ${wdr}/98.hcp/run_cvr_pressure_preproc.sh 010 11
 
 rm ${wdr}/../LogFiles/ica_denoise_preproc_010_11
-qsub -q long.q -N "cp_pp_010_11" \
+qsub -q long.q -N "id_pp_010_11" \
 -hold_jid "${joblist2}" \
 -o ${wdr}/../LogFiles/ica_denoise_preproc_010_11 \
 -e ${wdr}/../LogFiles/ica_denoise_preproc_010_11 \
