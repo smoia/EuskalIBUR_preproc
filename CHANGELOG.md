@@ -1,3 +1,15 @@
+# 0.0.3 (Thu Oct 14 2021)
+
+#### ⚠️ Pushed to `master`
+
+- Fix bunch of stuff ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.0.2 (Thu Oct 14 2021)
 
 #### ⚠️ Pushed to `master`
