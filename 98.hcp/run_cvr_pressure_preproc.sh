@@ -19,5 +19,5 @@ singularity exec -e --no-home \
 			-B /bcbl/home/public/PJMASK_2/preproc:/data \
 			-B /bcbl/home/public/PJMASK_2/EuskalIBUR_preproc:/scripts \
 			-B /export/home/smoia/scratch:/tmp \
-			euskalibur.sif /scripts/00.pipelines/custom/cvr_pressure_preproc.sh -sub $1 -ses $2 \
-						   -wdr /data -prjname cvr_pressure -tmp /tmp
+			/bcbl/home/public/PJMASK_2/euskalibur.sif /scripts/00.pipelines/custom/cvr_pressure_preproc.sh \
+						-sub $1 -ses $2 -wdr /data -prjname cvr_pressure -tmp /tmp
