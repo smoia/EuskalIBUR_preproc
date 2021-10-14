@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../utils.sh
-source $(dirname "$0")/../utils.sh
+source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -20,7 +20,11 @@ fi
 
 # Preparing the default values for variables
 tmp=.
+computeoutliers=no
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -42,9 +46,7 @@ do
 	shift
 done
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
+# Check input
 checkreqvar func_in fmat mask fdir mref
 checkoptvar computeoutliers tmp
 
@@ -82,7 +84,7 @@ for i in $( seq -f %04g 0 ${nTR} )
 do
 	echo "Flirting volume ${i} of ${nTR} in ${func}"
 	flirt -in ${tmp}/${func}_split/vol_${i} -ref ${mref} -applyxfm \
-	-init ../reg/${fmat}_mcf.mat/MAT_${i} -out ${tmp}/${func}_merge/vol_${i}
+	-init ../reg/$( basename ${fmat} )_mcf.mat/MAT_${i} -out ${tmp}/${func}_merge/vol_${i}
 done
 
 echo "Merging ${func}"
@@ -96,9 +98,12 @@ if [[ "${computeoutliers}" == "yes" ]]
 then
 	echo "Computing DVARS and FD for ${func}"
 	# 01.3. Compute various metrics
-	fsl_motion_outliers -i ${tmp}/${func}_mcf -o ${tmp}/${func}_mcf_dvars_confounds -s ${func}_dvars_post.par -p ${func}_dvars_post --dvars --nomoco
-	fsl_motion_outliers -i ${tmp}/${func}_cr -o ${tmp}/${func}_mcf_dvars_confounds -s ${func}_dvars_pre.par -p ${func}_dvars_pre --dvars --nomoco
-	fsl_motion_outliers -i ${tmp}/${func}_cr -o ${tmp}/${func}_mcf_fd_confounds -s ${func}_fd.par -p ${func}_fd --fd
+	fsl_motion_outliers -i ${tmp}/${func}_mcf -o ${tmp}/${func}_mcf_dvars_confounds \
+						-s ${func}_dvars_post.par -p ${func}_dvars_post --dvars --nomoco
+	fsl_motion_outliers -i ${tmp}/${func}_cr -o ${tmp}/${func}_mcf_dvars_confounds \
+						-s ${func}_dvars_pre.par -p ${func}_dvars_pre --dvars --nomoco
+	fsl_motion_outliers -i ${tmp}/${func}_cr -o ${tmp}/${func}_mcf_fd_confounds \
+						-s ${func}_fd.par -p ${func}_fd --fd
 fi
 
 cd ${cwd}

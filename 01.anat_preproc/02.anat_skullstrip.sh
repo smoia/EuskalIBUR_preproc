@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../utils.sh
-source $(dirname "$0")/../utils.sh
+source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -23,6 +23,9 @@ mask=none
 aref=none
 c3dsource=none
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -42,9 +45,7 @@ do
 	shift
 done
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
+# Check input
 checkreqvar anat_in adir
 checkoptvar mask aref c3dsource
 
@@ -57,7 +58,7 @@ done
 ######################################
 ######### Script starts here #########
 ######################################
-
+set -x
 cwd=$(pwd)
 
 cd ${adir} || exit
@@ -74,6 +75,7 @@ then
 				 -orig_vol -overwrite
 	fslmaths ${anat}_brain -bin ${anat}_brain_mask
 	mask=${anat}_brain_mask
+	echo ""
 else
 	# If a mask is specified, use it.
 	# Check if user input is basename or mask itself.
@@ -86,7 +88,7 @@ else
 	fslmaths ${anat}_brain -bin ${anat}_brain_mask
 fi
 
-arefsfx=$( basename ${aref} )
+arefsfx=$( basename ${aref%_*} )
 arefsfx=${aref#*ses-*_}
 
 if [[ "${aref}" != "none" ]] && [[ -e ../reg/${anat}2${arefsfx}_fsl.mat ]]
@@ -100,20 +102,21 @@ fi
 
 if [[ "${c3dsource}" != "none" ]]
 then
+	c3dfile=$(basename ${c3dsource})
 	anatsfx=${anat#*ses-*_}
 
 	# If a source for c3d is specified,
 	# translate fsl transformation into ants with the right images.
 	echo "Moving from FSL to ants in brain extracted images"
-	c3d_affine_tool -ref ${anat}_brain -src ${c3dsource}_brain ../reg/${c3dsource}2${anatsfx}_fsl.mat \
-				    -fsl2ras -oitk ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat
+	c3d_affine_tool -ref ${anat}_brain -src ${c3dsource}_brain ../reg/${c3dfile}2${anatsfx}_fsl.mat \
+				    -fsl2ras -oitk ../reg/${c3dfile}2${anatsfx}0GenericAffine.mat
 	# Also transform both skullstripped and not!
 	antsApplyTransforms -d 3 -i ${c3dsource}_brain.nii.gz \
-						-r ${anat}_brain.nii.gz -o ../reg/${c3dsource}_brain2${anatsfx}_brain.nii.gz \
-						-n Linear -t ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat/${c3dsource}2${anatsfx}0GenericAffine.mat
-	antsApplyTransforms -d 3 -i ${c3dsource}.nii.gz \
-						-r ${anat}.nii.gz -o ../reg/${c3dsource}2${anatsfx}.nii.gz \
-						-n Linear -t ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat
+						-r ${anat}_brain.nii.gz -o ../reg/${c3dfile}_brain2${anatsfx}_brain.nii.gz \
+						-n Linear -t ../reg/${c3dfile}2${anatsfx}0GenericAffine.mat
+	# antsApplyTransforms -d 3 -i ${c3dsource}.nii.gz \
+	# 					-r ${anat}.nii.gz -o ../reg/${c3dsource}2${anatsfx}.nii.gz \
+	# 					-n Linear -t ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat
 fi
 
 cd ${cwd}

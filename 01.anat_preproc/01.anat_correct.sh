@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../utils.sh
-source $(dirname "$0")/../utils.sh
+source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -22,6 +22,9 @@ fi
 aref=none
 tmp=.
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -40,9 +43,7 @@ do
 	shift
 done
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
+# Check input
 checkreqvar anat_in adir
 checkoptvar aref tmp
 
@@ -61,7 +62,7 @@ cwd=$(pwd)
 cd ${adir} || exit 1
 
 #Read and process input
-anat=$( basename ${anat_in%_*} )
+anat=$( basename ${anat_in%.nii.gz} )
 if_missing_do mkdir ${tmp}
 
 # 01. Deoblique & resample
@@ -79,10 +80,10 @@ N4BiasFieldCorrection -d 3 -i ${tmp}/${anat}_trunc.nii.gz -o ${tmp}/${anat}_bfc.
 ## 03. Anat coreg between modalities
 if [[ "${aref}" != "none" ]]
 then
-	arefsfx=$( basename ${aref} )
-	arefsfx=${aref#*ses-*_}
-	echo "Flirting ${anat} on ${aref}"
-	flirt -in ${anat} -ref ${aref} -cost normmi -searchcost normmi \
+	arefsfx=$( basename ${aref%_*} )
+	arefsfx=${arefsfx#*ses-*_}
+	echo "Flirting ${tmp}/${anat}_bfc on ${aref}"
+	flirt -in ${tmp}/${anat}_bfc -ref ${aref} -cost normmi -searchcost normmi \
 	-omat ../reg/${anat}2${arefsfx}_fsl.mat -o ../reg/${anat}2${arefsfx}_fsl.nii.gz
 fi
 

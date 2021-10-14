@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../utils.sh
-source $(dirname "$0")/../utils.sh
+source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -21,9 +21,12 @@ fi
 # Preparing the default values for variables
 voldiscard=0
 despike=no
-slicetimeinterp=no
+slicetimeinterp=none
 tmp=.
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -34,7 +37,7 @@ do
 
 		-voldiscard)		voldiscard=$2;shift;;
 		-despike)			despike=yes;;
-		-slicetimeinterp)	slicetimeinterp=yes;;
+		-slicetimeinterp)	slicetimeinterp=$2;shift;;
 		-tmp)				tmp=$2;shift;;
 
 		-h)			displayhelp;;
@@ -44,10 +47,8 @@ do
 	shift
 done
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
-checkreqvar func fdir
+# Check input
+checkreqvar func_in fdir
 checkoptvar voldiscard despike slicetimeinterp tmp
 
 ### Remove nifti suffix
@@ -62,7 +63,7 @@ cwd=$(pwd)
 cd ${fdir} || exit
 
 #Read and process input
-func=$( basename ${func_in%_*} )
+func=$( basename ${func_in%.nii.gz} )
 nTR=$(fslval ${func_in} dim4)
 
 ## 01. Corrections
@@ -101,7 +102,7 @@ then
 fi
 
 ## 02. Slice Interpolation if asked
-if [[ "${slicetimeinterp}" == "yes" ]]
+if [[ "${slicetimeinterp}" != "none" ]]
 then
 	echo "Slice Interpolation of ${func}"
 	3dTshift -Fourier -prefix ${tmp}/${func}_si.nii.gz \

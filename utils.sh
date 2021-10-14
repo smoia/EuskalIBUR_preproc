@@ -4,6 +4,7 @@ version() {
 	echo "Version 0.0.0"
 }
 
+# Check input
 checkreqvar() {
 	reqvar=( "$@" )
 
@@ -64,7 +65,7 @@ esac
 
 replace_and() {
 case $1 in
-	mkdir) if [ -d $2 ]; then echo "$2 exists already, removing first"; rm -rf $2; fi; mkdir -p $2 ;;
+	mkdir) if [ -d $2 ]; then echo "$2 exists already, removing first"; rm -rf $2; fi; mkdir -p "${@:2}" ;;
 	touch) if [ -d $2 ]; then echo "$2 exists already, removing first"; rm -rf $2; fi; touch $2 ;;
 	* ) echo "This is wrong"; exit ;;
 esac

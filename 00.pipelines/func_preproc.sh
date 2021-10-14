@@ -7,12 +7,11 @@ displayhelp() {
 echo "Required:"
 echo "sub ses task TEs wdr"
 echo "Optional:"
-echo "anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp despike fwhm scriptdir tmp debug"
+echo "anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp despike fwhm den_motreg den_detrend den_meica den_tissues applynuisance scriptdir tmp debug"
 exit ${1:-0}
 }
 
 # Check if there is input
-
 if [[ ( $# -eq 0 ) ]]
 	then
 	displayhelp
@@ -23,10 +22,15 @@ anatsfx=none
 asegsfx=none
 voldiscard=10
 polort=4
-slicetimeinterp=no
+slicetimeinterp=none
 despike=no
 sbref=default
 mask=default
+den_motreg=no
+den_detrend=no
+den_meica=no
+den_tissues=no
+applynuisance=no
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 scriptdir=${scriptdir%/*}/02.func_preproc
@@ -54,8 +58,13 @@ do
 		-sbref)				sbref=$2;shift;;
 		-mask)				mask=$2;shift;;
 		-fwhm)				fwhm=$2;shift;;
-		-slicetimeinterp)	slicetimeinterp=yes;;
+		-slicetimeinterp)	slicetimeinterp=$2;shift;;
 		-despike)			despike=yes;;
+		-den_motreg)		den_motreg=yes;;
+		-den_detrend)		den_detrend=yes;;
+		-den_meica)			den_meica=yes;;
+		-den_tissues)		den_tissues=yes;;
+		-applynuisance)		applynuisance=yes;;
 		-scriptdir)			scriptdir=$2;shift;;
 		-tmp)				tmp=$2;shift;;
 		-debug)				debug=yes;;
@@ -70,9 +79,9 @@ done
 # Check input
 checkreqvar sub ses task TEs wdr
 [[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
-[[ ${sbref} == "default " ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
-[[ ${mask} == "default " ]] && mask=${sbref}_brain_mask
-checkoptvar anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
+[[ ${sbref} == "default" ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
+[[ ${mask} == "default" ]] && mask=${sbref}_brain_mask
+checkoptvar anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp despike fwhm den_motreg den_detrend den_meica den_tissues applynuisance scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -103,10 +112,18 @@ do
 
 	echo "bold=${fileprx}_task-${task}_echo-${e}_bold"
 	bold=${fileprx}_task-${task}_echo-${e}_bold
-	${scriptdir}/01.func_correct.sh -func_in ${bold} -fdir ${fdir} \
-									-voldiscard ${voldiscard} \
-									-despike ${despike} \
-									-slicetimeinterp ${slicetimeinterp} -tmp ${tmp}
+	runfunccorrect="${scriptdir}/01.func_correct.sh -func_in ${bold} -fdir ${fdir}"
+	runfunccorrect="${runfunccorrect} -voldiscard ${voldiscard}"
+	runfunccorrect="${runfunccorrect} -slicetimeinterp ${slicetimeinterp} -tmp ${tmp}"
+	[[ ${despike} == "yes" ]] && runfunccorrect="${runfunccorrect} -despike"
+
+	echo "# Generating the command:"
+	echo ""
+	echo "${runfunccorrect}"
+	echo ""
+
+	eval ${runfunccorrect}
+
 done
 
 echo "************************************"
@@ -140,6 +157,15 @@ do
 	bold=${fileprx}_task-${task}_echo-${e}_bold_bet
 	${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat ${anat} \
 									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
+
+	bold_in=${bold%_*}
+	echo "mv ${bold_in}_gp_PVO.png ${fdir}/$( basename ${bold_in} )_raw_gp_PVO.png"
+	mv ${bold_in}_gp_PVO.png ${fdir}/$( basename ${bold_in} )_raw_gp_PVO.png
+	echo "mv ${bold_in}_gp_IJK.png ${fdir}/$( basename ${bold_in} )_raw_gp_IJK.png"
+	mv ${bold_in}_gp_IJK.png ${fdir}/$( basename ${bold_in} )_raw_gp_IJK.png
+	echo "mv ${bold_in}_gp_peel.png ${fdir}/$( basename ${bold_in} )_raw_gp_peel.png"
+	mv ${bold_in}_gp_peel.png ${fdir}/$( basename ${bold_in} )_raw_gp_peel.png
+
 done
 
 echo "************************************"
@@ -159,10 +185,8 @@ ${scriptdir}/06.func_optcom.sh -func_in ${fmat}_bet -fdir ${fdir} -TEs "${TEs}" 
 # As it's ${task}, only skip denoising (but create matrix nonetheless)!
 for e in $( seq 1 ${nTE}; echo "optcom" )
 do
-	if [ ${e} != "optcom" ]
-	then
-		e=echo-${e}
-	fi
+	[[ ${e} != "optcom" ]] && e=echo-${e}
+
 	echo "bold=${fileprx}_task-${task}_${e}_bold"
 	bold=${fileprx}_task-${task}_${e}_bold
 	
@@ -171,14 +195,14 @@ do
 	echo "************************************"
 	echo "************************************"
 
-	runnuiscomp="${scriptdir}/07.func_nuiscomp.sh -func_in ${bold}_bet -fmat ${fmat}"
+	runnuiscomp="${scriptdir}/07.func_nuiscomp.sh -func_in ${bold}_bet -fmat_in ${fmat}"
 	runnuiscomp="${runnuiscomp} -mref ${sbref} -fdir ${fdir} -tmp ${tmp}"
 	runnuiscomp="${runnuiscomp} -anat ${anat} -aseg ${aseg} -polort ${polort}"
 	[[ ${den_motreg} == "yes" ]] && runnuiscomp="${runnuiscomp} -den_motreg"
 	[[ ${den_detrend} == "yes" ]] && runnuiscomp="${runnuiscomp} -den_detrend"
 	[[ ${den_meica} == "yes" ]] && runnuiscomp="${runnuiscomp} -den_meica"
 	[[ ${den_tissues} == "yes" ]] && runnuiscomp="${runnuiscomp} -den_tissues"
-	[[ ${applynuisance} == "yes" ]] && runnuiscomp="${runnuiscomp} -applynuisance"
+	[[ ${applynuisance} == "yes" ]] && runnuiscomp="${runnuiscomp} -applynuisance" && boldsource=${bold}_den || boldsource=${bold}_bet
 
 	echo "# Generating the command:"
 	echo ""
@@ -192,7 +216,7 @@ do
 	echo "************************************"
 	echo "************************************"
 
-	${scriptdir}/02.func_pepolar.sh -func_in ${bold}_bet -fdir ${fdir} \
+	${scriptdir}/02.func_pepolar.sh -func_in ${boldsource} -fdir ${fdir} \
 									-pepolar ${sbref}_topup -tmp ${tmp}
 
 	boldout=$( basename ${bold} )
@@ -205,14 +229,15 @@ do
 		echo "************************************"
 
 		${scriptdir}/08.func_smooth.sh -func_in ${bold}_tpp -fdir ${fdir} -fwhm ${fwhm} -mask ${mask} -tmp ${tmp}
-		echo "3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale"
-		3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale
 		boldsource=${bold}_sm
 	else
-		echo "3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale"
-		3dcalc -a ${bold}_sm.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale
 		boldsource=${bold}_tpp
 	fi
+
+	echo "3dcalc -a ${boldsource}.nii.gz -b ${mask}.nii.gz -expr 'a*b' -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz -short -gscale"
+	3dcalc -a ${boldsource}.nii.gz -b ${mask}.nii.gz -expr 'a*b' \
+		   -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz \
+		   -short -gscale -overwrite
 
 	echo "************************************"
 	echo "*** Func greyplot ${task} BOLD echo ${e} (post)"
@@ -221,12 +246,12 @@ do
 	${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat ${anat} \
 									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
 
-	echo "mv ${bold}_sm_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png"
-	mv ${bold}_sm_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png
-	echo "mv ${bold}_sm_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png"
-	mv ${bold}_sm_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png
-	echo "mv ${bold}_sm_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png"
-	mv ${bold}_sm_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png
+	echo "mv ${bold}_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png"
+	mv ${bold}_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png
+	echo "mv ${bold}_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png"
+	mv ${bold}_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png
+	echo "mv ${bold}_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png"
+	mv ${bold}_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png
 
 done
 

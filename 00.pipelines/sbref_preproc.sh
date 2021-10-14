@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../utils.sh
-source $(dirname "$0")/../utils.sh
+source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -22,10 +22,12 @@ fi
 anat=sub-${sub}_ses-01_T2w
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-[[ ${scriptdir: -1} == / ]] && scriptdir=${scriptdir%/*/} || scriptdir=${scriptdir%/*}
-scriptdir=${scriptdir}/02.func_preproc
+scriptdir=${scriptdir%/*}/02.func_preproc
 debug=no
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -47,10 +49,9 @@ do
 	shift
 done
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
+# Check input
 checkreqvar sub ses wdr
+[[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
 checkoptvar anat scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
@@ -88,10 +89,10 @@ echo "*** Func correct breathhold SBREF echo 1"
 echo "************************************"
 echo "************************************"
 
-sbrf=${fileprx}_task-breathhold_rec-magnitude_echo-1_sbref
-if [[ ! -e ${sbrf}_cr.nii.gz ]]
+sbref=${fileprx}_task-breathhold_rec-magnitude_echo-1_sbref
+if [[ ! -e ${sbref}_cr.nii.gz ]]
 then
-	${scriptdir}/01.func_correct.sh -func_in ${sbrf} -fdir ${fdir} -tmp ${tmp}
+	${scriptdir}/01.func_correct.sh -func_in ${sbref} -fdir ${fdir} -tmp ${tmp}
 fi
 
 echo "************************************"
@@ -99,7 +100,7 @@ echo "*** Func pepolar breathhold SBREF echo 1"
 echo "************************************"
 echo "************************************"
 
-${scriptdir}/02.func_pepolar.sh -func_in ${sbrf}_cr -fdir ${fdir} \
+${scriptdir}/02.func_pepolar.sh -func_in ${sbref}_cr -fdir ${fdir} \
 								-breverse ${brev} -bforward ${bfor} -tmp ${tmp}
 
 echo "************************************"
@@ -107,29 +108,26 @@ echo "*** Func spacecomp breathhold SBREF echo 1"
 echo "************************************"
 echo "************************************"
 
-${scriptdir}/11.sbref_spacecomp.sh -sbref_in ${sbrf}_tpp -anat ${anat} \
-								   -fdir ${fdir} -adir ${adir} -tmp ${tmp}
+${scriptdir}/11.sbref_spacecomp.sh -sbref_in ${sbref}_tpp -anat ${anat} \
+								   -fdir ${fdir}
 
-sbrfsfx=$( basename ${sbrf%_*} )
-sbrfsfx=${sbrfsfx#*ses-*_}
+sbreffunc=${fdir}/$( basename ${sbref} )
 
 # Copy this sbref to reg folder
-echo "imcp ${fdir}/${sbrf}_tpp ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref"
-imcp ${fdir}/${sbrf}_tpp ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
-echo "imcp ${fdir}/${sbrf}_brain ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain"
-imcp ${fdir}/${sbrf}_brain ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain
-echo "imcp ${fdir}/${sbrf}_brain_mask ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain_mask"
-imcp ${fdir}/${sbrf}_brain_mask ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain_mask
-echo "imcp ${fdir}/${anat}2${sbrfsfx}.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref"
-imcp ${fdir}/${anat}2${sbrfsfx}.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref
+echo "imcp ${sbref}_tpp ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref"
+imcp ${sbref}_tpp ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
 
-echo "mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup"
-mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup
-echo "cp -R ${fdir}/${sbrf}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/."
-cp -R ${fdir}/${sbrf}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/.
-echo "cp ${fdir}/${anat}2${sbrfsfx}_fsl.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref_fsl.mat"
-cp ${fdir}/${anat}2${sbrfsfx}_fsl.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref_fsl.mat
-echo "cp ${fdir}/${anat}2${sbrfsfx}0GenericAffine.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref0GenericAffine.mat"
-cp ${fdir}/${anat}2${sbrfsfx}0GenericAffine.mat ${wdr}/sub-${sub}/ses-${ses}/reg/${anat}2sbref0GenericAffine.mat
+echo "imcp ${sbreffunc}_brain ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain"
+imcp ${sbreffunc}_brain ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain
+echo "imcp ${sbreffunc}_brain_mask ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain_mask"
+imcp ${sbreffunc}_brain_mask ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_brain_mask
+echo "imcp ${anat}2sbref.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/$(basename ${anat})2sbref"
+imcp ${anat}2sbref.nii.gz ${wdr}/sub-${sub}/ses-${ses}/reg/$(basename ${anat})2sbref
+
+echo "if_missing_do mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup"
+if_missing_do mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup
+
+echo "cp -R ${sbreffunc}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/."
+cp -R ${sbreffunc}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/.
 
 [[ ${debug} == "yes" ]] && set +x

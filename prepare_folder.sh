@@ -21,10 +21,12 @@ fi
 # Preparing the default values for variables
 overwrite=no
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-[[ ${scriptdir: -1} == / ]] && scriptdir=${scriptdir%/*/} || scriptdir=${scriptdir%/*}
 stdpath=${scriptdir}/90.template
 mmres=no
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -55,9 +57,7 @@ then
 fi
 tmp=${tmp}/tmp_${prjname}
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
+# Check input
 checkreqvar sub ses wdr std prjname
 checkoptvar overwrite stdpath mmres tmp
 
@@ -94,17 +94,16 @@ if_missing_do mkdir derivatives
 
 [[ "${overwrite}" == "yes" ]] && replace_and mkdir derivatives/${prjname}
 
-if_missing_do mkdir derivatives/${prjname}/sub-${sub}/ses-${ses}/func \
-					derivatives/${prjname}/sub-${sub}/ses-${ses}/anat \
-					derivatives/${prjname}/sub-${sub}/ses-${ses}/fmap \
-					derivatives/${prjname}/sub-${sub}/ses-${ses}/reg
+sesfld=derivatives/${prjname}/sub-${sub}/ses-${ses}
+
+if_missing_do mkdir ${sesfld}/func ${sesfld}/anat \
+					${sesfld}/fmap ${sesfld}/reg
 
 echo "Initialise files"
-if_missing_do copy ${stdpath}/${std}.nii.gz reg/${std}.nii.gz
-if [ -e ${stdpath}/${std}_resamp_${mmres}mm.nii.gz ]
-then
-	imcp {stdpath}/${std}_resamp_${mmres}mm.nii.gz reg/${std}_resamp_${mmres}mm.nii.gz
-fi
+if_missing_do copy ${stdpath}/${std}.nii.gz ${sesfld}/reg/${std}.nii.gz
+[[ -e ${stdpath}/${std}_resamp_${mmres}mm.nii.gz ]] && imcp ${stdpath}/${std}_resamp_${mmres}mm.nii.gz \
+															${sesfld}/reg/${std}_resamp_${mmres}mm.nii.gz
+
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*.nii.gz ${tmp}/.
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz ${tmp}/.
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz ${tmp}/.

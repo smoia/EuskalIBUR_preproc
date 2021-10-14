@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../utils.sh
-source $(dirname "$0")/../utils.sh
+source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
 echo "Required:"
@@ -26,11 +26,13 @@ slicetimeinterp=no
 sbref=default
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-[[ ${scriptdir: -1} == / ]] && scriptdir=${scriptdir%/*/} || scriptdir=${scriptdir%/*}
-scriptdir=${scriptdir}/02.func_preproc
+scriptdir=${scriptdir%/*}/02.func_preproc
 debug=no
 fwhm=none
 
+### print input
+printline=$( basename -- $0 )
+echo "${printline} " "$@"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -60,10 +62,9 @@ do
 	shift
 done
 
-### print input
-printline=$( basename -- $0 )
-echo "${printline} " "$@"
+# Check input
 checkreqvar sub ses run TEs wdr
+[[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
 [[ ${sbref} == "default " ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
 [[ ${mask} == "default " ]] && mask=${sbref}_brain_mask
 checkoptvar anatsfx asegsfx voldiscard sbref slicetimeinterp despike scriptdir tmp debug
@@ -80,8 +81,8 @@ done
 aTEs=( ${TEs} )
 nTE=${#aTEs[@]}
 fileprx=sub-${sub}_ses-${ses}
-[[ ${anatsfx} != none ]] && anat=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${anatsfx} || anat=none
-[[ ${asegsfx} != none ]] && aseg=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${asegsfx} || aseg=none
+[[ ${anatsfx} != "none" ]] && anat=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${anatsfx} || anat=none
+[[ ${asegsfx} != "none" ]] && aseg=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${asegsfx} || aseg=none
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
 ######################################
