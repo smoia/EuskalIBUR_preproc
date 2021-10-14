@@ -42,7 +42,7 @@ checkreqvar anat_in adir std mmres
 ### Remove nifti suffix
 for var in anat_in std
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################

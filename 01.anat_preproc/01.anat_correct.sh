@@ -50,7 +50,7 @@ checkoptvar aref tmp
 ### Remove nifti suffix
 for var in anat_in aref
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################

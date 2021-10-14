@@ -54,7 +54,7 @@ checkoptvar pepolar breverse bforward tmp
 ### Remove nifti suffix
 for var in anat_in breverse bforward
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################

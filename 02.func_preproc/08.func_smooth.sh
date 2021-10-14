@@ -52,7 +52,7 @@ checkoptvar fwhm mask tmp
 ### Remove nifti suffix
 for var in func_in mask
 do
-eval "${var}=${!var%.nii*}"
+	eval "${var}=${!var%.nii*}"
 done
 
 ######################################
