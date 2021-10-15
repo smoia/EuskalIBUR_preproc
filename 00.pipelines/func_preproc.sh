@@ -7,7 +7,9 @@ displayhelp() {
 echo "Required:"
 echo "sub ses task TEs wdr"
 echo "Optional:"
-echo "anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp despike fwhm den_motreg den_detrend den_meica den_tissues applynuisance scriptdir tmp debug"
+echo "anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp \
+	  despike fwhm den_motreg den_detrend den_meica den_tissues \
+	  applynuisance only_echoes only_optcom scriptdir tmp debug"
 exit ${1:-0}
 }
 
@@ -31,6 +33,8 @@ den_detrend=no
 den_meica=no
 den_tissues=no
 applynuisance=no
+preproc_echoes=yes
+preproc_optcom=yes
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 scriptdir=${scriptdir%/*}/02.func_preproc
@@ -65,6 +69,8 @@ do
 		-den_meica)			den_meica=yes;;
 		-den_tissues)		den_tissues=yes;;
 		-applynuisance)		applynuisance=yes;;
+		-only_echoes)		preproc_optcom=no;;
+		-only_optcom)		preproc_echoes=no;;
 		-scriptdir)			scriptdir=$2;shift;;
 		-tmp)				tmp=$2;shift;;
 		-debug)				debug=yes;;
@@ -182,8 +188,11 @@ echo "************************************"
 # Since t2smap gives different results from tedana, prefer the former for optcom
 ${scriptdir}/06.func_optcom.sh -func_in ${fmat}_bet -fdir ${fdir} -TEs "${TEs}" -tmp ${tmp}
 
+[[ ${preproc_echoes} == "yes" ]] && preproc_vols=( $( seq 1 ${nTE}) ) || preproc_vols=()
+[[ ${preproc_optcom} == "yes" ]] && preproc_vols=( ${preproc_vols[@]} optcom )
+
 # As it's ${task}, only skip denoising (but create matrix nonetheless)!
-for e in $( seq 1 ${nTE}; echo "optcom" )
+for e in "${preproc_vols[@]}"
 do
 	[[ ${e} != "optcom" ]] && e=echo-${e}
 
