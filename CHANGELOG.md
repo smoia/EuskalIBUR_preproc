@@ -1,3 +1,15 @@
+# 0.1.0 (Fri Oct 15 2021)
+
+#### 🚀 Enhancement
+
+- Allow running functional preproc on optcom or echoes only [#2](https://github.com/smoia/EuskalIBUR_preproc/pull/2) ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.0.4 (Thu Oct 14 2021)
 
 #### ⚠️ Pushed to `master`
