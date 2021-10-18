@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "func_in fdir"
 echo "Optional:"
-echo "pepolar breverse bforward tmp"
+echo "pepolar breverse bforward tmp scriptdir"
 exit ${1:-0}
 }
 
@@ -22,6 +22,8 @@ fi
 pepolar=none
 breverse=none
 bforward=none
+scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+scriptdir=${scriptdir%/*}/..
 tmp=.
 
 ### print input
@@ -38,6 +40,7 @@ do
 		-pepolar)	pepolar=$2;shift;;
 		-breverse)	breverse=$2;shift;;
 		-bforward)	bforward=$2;shift;;
+		-scriptdir)	scriptdir=$2;shift;;
 		-tmp)		tmp=$2;shift;;
 
 		-h)			displayhelp;;
@@ -49,7 +52,7 @@ done
 
 # Check input
 checkreqvar func_in fdir
-checkoptvar pepolar breverse bforward tmp
+checkoptvar pepolar breverse bforward tmp scriptdir
 
 ### Remove nifti suffix
 for var in anat_in breverse bforward
@@ -83,7 +86,7 @@ then
 
 	cd ${pepolar}
 	echo "Computing PEpolar map for ${func}"
-	topup --imain=mgdmap --datain=/scripts/acqparam.txt --out=outtp --verbose
+	topup --imain=mgdmap --datain=${scriptdir}/acqparam.txt --out=outtp --verbose
 	cd ..
 elif [[ ${pepolar} == "none" && ( ${breverse} == "none" || ${bforward} == "none" ) ]]
 then
@@ -94,7 +97,7 @@ fi
 
 # 03.2. Applying the warping to the functional volume
 echo "Applying PEPOLAR map on ${func}"
-applytopup --imain=${func_in} --datain=/scripts/acqparam.txt --inindex=1 \
+applytopup --imain=${func_in} --datain=${scriptdir}/acqparam.txt --inindex=1 \
 --topup=${pepolar}/outtp --out=${tmp}/${func}_tpp --verbose --method=jac
 
 cd ${cwd}
