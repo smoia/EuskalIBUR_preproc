@@ -1,3 +1,15 @@
+# 0.1.1 (Mon Oct 18 2021)
+
+#### ⚠️ Pushed to `master`
+
+- Fix func_pepolar acqparam redirection [fix] ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.1.0 (Fri Oct 15 2021)
 
 #### 🚀 Enhancement
