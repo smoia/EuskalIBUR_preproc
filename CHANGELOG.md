@@ -1,3 +1,15 @@
+# 0.2.0 (Thu Oct 21 2021)
+
+#### 💥 Breaking Change during development
+
+- Removing 3drefit and 3dresample calls after a chat with @oesteban [#3](https://github.com/smoia/EuskalIBUR_preproc/pull/3) ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.1.1 (Mon Oct 18 2021)
 
 #### ⚠️ Pushed to `master`
