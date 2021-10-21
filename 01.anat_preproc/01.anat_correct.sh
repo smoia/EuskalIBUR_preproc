@@ -65,15 +65,10 @@ cd ${adir} || exit 1
 anat=$( basename ${anat_in%.nii.gz} )
 if_missing_do mkdir ${tmp}
 
-# 01. Deoblique & resample
-echo "Resample ${anat}"
-3drefit -deoblique ${anat_in}.nii.gz 
-3dresample -orient RPI -inset ${anat_in}.nii.gz -prefix ${tmp}/${anat}_RPI.nii.gz -overwrite
-
 ## 02. Bias Field Correction with ANTs
 # 02.1. Truncate (0.01) for Bias Correction
 echo "Performing BFC on ${anat}"
-ImageMath 3 ${tmp}/${anat}_trunc.nii.gz TruncateImageIntensity ${tmp}/${anat}_RPI.nii.gz 0.02 0.98 256
+ImageMath 3 ${tmp}/${anat}_trunc.nii.gz TruncateImageIntensity ${anat_in}.nii.gz 0.02 0.98 256
 # 02.2. Bias Correction
 N4BiasFieldCorrection -d 3 -i ${tmp}/${anat}_trunc.nii.gz -o ${tmp}/${anat}_bfc.nii.gz
 
