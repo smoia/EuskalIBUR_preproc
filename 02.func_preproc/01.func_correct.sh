@@ -78,12 +78,7 @@ then
 	fslroi ${funcsource} ${tmp}/${func}_dsd.nii.gz ${voldiscard} -1
 	funcsource=${tmp}/${func}_dsd
 fi
-# 01.2. Deoblique & resample
-echo "Deoblique and RPI orient ${func}"
-3drefit -deoblique ${funcsource}.nii.gz
-3dresample -orient RPI -inset ${funcsource}.nii.gz -prefix ${tmp}/${func}_RPI.nii.gz -overwrite
-# set name of source for 3dNwarpApply
-funcsource=${tmp}/${func}_RPI
+
 # 01.3. Compute outlier fraction if there's more than one TR
 if [[ "${nTR}" -gt "1" ]]
 then
