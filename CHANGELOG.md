@@ -1,3 +1,15 @@
+# 0.2.2 (Thu Oct 28 2021)
+
+#### ⚠️ Pushed to `master`
+
+- Fix bad call of grayplots ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.2.1 (Thu Oct 28 2021)
 
 #### ⚠️ Pushed to `master`
