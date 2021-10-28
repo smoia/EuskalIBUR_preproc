@@ -1,3 +1,15 @@
+# 0.2.1 (Thu Oct 28 2021)
+
+#### ⚠️ Pushed to `master`
+
+- Fix issue with overwrite ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.2.0 (Thu Oct 21 2021)
 
 #### 💥 Breaking Change during development
