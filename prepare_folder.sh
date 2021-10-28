@@ -90,11 +90,11 @@ echo "Overwrite tmp folder"
 replace_and mkdir ${tmp}
 
 echo "Check derivative project folder"
-if_missing_do mkdir derivatives
-
-[[ "${overwrite}" == "yes" ]] && replace_and mkdir derivatives/${prjname}
+if_missing_do mkdir derivatives/${prjname}
 
 sesfld=derivatives/${prjname}/sub-${sub}/ses-${ses}
+
+[[ "${overwrite}" == "yes" ]] && replace_and mkdir ${sesfld}
 
 if_missing_do mkdir ${sesfld}/func ${sesfld}/anat \
 					${sesfld}/fmap ${sesfld}/reg
