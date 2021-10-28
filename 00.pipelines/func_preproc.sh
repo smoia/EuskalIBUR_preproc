@@ -161,7 +161,7 @@ do
 	echo "************************************"
 	echo "bold=${fileprx}_task-${task}_echo-${e}_bold_bet"
 	bold=${fileprx}_task-${task}_echo-${e}_bold_bet
-	${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat ${anat} \
+	${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat_in ${anat} \
 									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
 
 	bold_in=${bold%_*}
@@ -252,7 +252,7 @@ do
 	echo "*** Func greyplot ${task} BOLD echo ${e} (post)"
 	echo "************************************"
 	echo "************************************"
-	${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat ${anat} \
+	${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat_in ${anat} \
 									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
 
 	echo "mv ${bold}_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png"

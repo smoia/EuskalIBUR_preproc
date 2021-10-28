@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "func_in fdir"
 echo "Optional:"
-echo "anat adir mref aseg polort tmp"
+echo "anat_in adir mref aseg polort tmp"
 
 exit ${1:-0}
 }
@@ -54,7 +54,7 @@ done
 
 # Check input
 checkreqvar func_in fdir
-checkoptvar anat adir mref aseg polort tmp
+checkoptvar anat_in adir mref aseg polort tmp
 
 ### Remove nifti suffix
 for var in func_in anat mref aseg
