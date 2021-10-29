@@ -3,7 +3,9 @@
     "git-tag",
     "conventional-commits",
     "first-time-contributor",
-    "released"
+    "released",
+    "npm",
+    "conventional-commits"
   ],
   "owner": "smoia",
   "repo": "EuskalIBUR_preproc",
