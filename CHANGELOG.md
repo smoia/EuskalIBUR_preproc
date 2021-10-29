@@ -1,3 +1,20 @@
+# 0.3.0 (Fri Oct 29 2021)
+
+#### 💥 Breaking Change during development
+
+- Fix use of greyplots in full preproc pipeline [#5](https://github.com/smoia/EuskalIBUR_preproc/pull/5) ([@smoia](https://github.com/smoia))
+
+#### ⚠️ Pushed to `master`
+
+- int: remove npm from autorc ([@smoia](https://github.com/smoia))
+- int: Add conventional commits to auto ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.2.2 (Thu Oct 28 2021)
 
 #### ⚠️ Pushed to `master`
