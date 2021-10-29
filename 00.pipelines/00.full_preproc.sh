@@ -97,8 +97,6 @@ done
 
 #Derived variables
 fileprx=sub-${sub}_ses-${ses}
-if [[ ${anat1sfx} != "none" ]]; then anat1=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${anat1sfx}; else anat1=none; fi
-if [[ ${anat2sfx} != "none" ]]; then anat2=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${anat2sfx}; else anat2=none; fi
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
 
 first_ses_path=${wdr}/derivatives/${prjname}/sub-${sub}/ses-01
@@ -169,6 +167,9 @@ tmp=${tmp}/tmp_${prjname}
 echo ""
 echo ""
 
+if [[ ${anat1sfx} != "none" ]]; then anat1=sub-${sub}_ses-01_${anat1sfx}; else anat1=none; fi
+if [[ ${anat2sfx} != "none" ]]; then anat2=sub-${sub}_ses-01_${anat2sfx}; else anat2=none; fi
+
 if [[ "${run_anat}" == "yes" ]]
 then
 	if [ ${ses} -eq 1 ]
@@ -197,11 +198,9 @@ then
 		mkdir -p ${wdr}/sub-${sub}/ses-${ses}/anat
 		cp -R ${uni_adir}/* ${wdr}/sub-${sub}/ses-${ses}/anat/.
 		# Then be sure that the anatomical files reference is right.
-		anat1=sub-${sub}_ses-01_acq-uni_T1w 
 		cp ${uni_adir}/../reg/*${anat1}* ${wdr}/sub-${sub}/ses-${ses}/reg/.
 		if [[ ${anat2} != "none" ]]
 		then
-			anat2=sub-${sub}_ses-01_T2w
 			cp ${uni_adir}/../reg/*${anat2}* ${wdr}/sub-${sub}/ses-${ses}/reg/.
 		fi
 	fi
@@ -214,8 +213,6 @@ fi
 
 echo ""
 echo ""
-
-anat2=${uni_adir}/$( basename ${anat2} )
 
 if [[ "${run_sbref}" == "yes" ]]
 then
@@ -261,8 +258,8 @@ fi
 echo ""
 echo ""
 
-asegsfx=acq-uni_T1w 
-anatsfx=T2w
+aseg=${uni_adir}/${anat1}
+anat=${uni_adir}/${anat2}
 [[ ${sbref} == "default" ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
 [[ ${mask} == "default" ]] && mask=${sbref}_brain_mask
 
@@ -272,7 +269,7 @@ then
 	do
 		runfuncpreproc="${scriptdir}/func_preproc.sh -sub ${sub} -ses ${ses}"
 		runfuncpreproc="${runfuncpreproc} -task ${task} -TEs \"${TEs}\""
-		runfuncpreproc="${runfuncpreproc} -wdr ${wdr} -anatsfx ${anatsfx} -asegsfx ${asegsfx}"
+		runfuncpreproc="${runfuncpreproc} -wdr ${wdr} -anat ${anat} -aseg ${aseg}"
 		runfuncpreproc="${runfuncpreproc} -voldiscard ${voldiscard} -slicetimeinterp ${slicetimeinterp}"
 		runfuncpreproc="${runfuncpreproc} -sbref ${sbref}"
 		runfuncpreproc="${runfuncpreproc} -mask ${mask} -fwhm ${fwhm} -tmp ${tmp}"

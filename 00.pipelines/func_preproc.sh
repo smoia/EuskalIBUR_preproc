@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "sub ses task TEs wdr"
 echo "Optional:"
-echo "anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp \
+echo "anat aseg voldiscard polort sbref mask slicetimeinterp \
 	  despike fwhm den_motreg den_detrend den_meica den_tissues \
 	  applynuisance only_echoes only_optcom scriptdir tmp debug"
 exit ${1:-0}
@@ -20,8 +20,8 @@ if [[ ( $# -eq 0 ) ]]
 fi
 
 # Preparing the default values for variables
-anatsfx=none
-asegsfx=none
+anat=none
+aseg=none
 voldiscard=10
 polort=4
 slicetimeinterp=none
@@ -55,8 +55,8 @@ do
 		-TEs)		TEs="$2";shift;;
 		-wdr)		wdr=$2;shift;;
 
-		-anatsfx)			anatsfx=$2;shift;;
-		-asegsfx)			asegsfx=$2;shift;;
+		-anat)				anat=$2;shift;;
+		-aseg)				aseg=$2;shift;;
 		-voldiscard)		voldiscard=$2;shift;;
 		-polrot)			polort=$2;shift;;
 		-sbref)				sbref=$2;shift;;
@@ -87,7 +87,7 @@ checkreqvar sub ses task TEs wdr
 [[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
 [[ ${sbref} == "default" ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
 [[ ${mask} == "default" ]] && mask=${sbref}_brain_mask
-checkoptvar anatsfx asegsfx voldiscard polort sbref mask slicetimeinterp despike fwhm den_motreg den_detrend den_meica den_tissues applynuisance scriptdir tmp debug
+checkoptvar anat aseg voldiscard polort sbref mask slicetimeinterp despike fwhm den_motreg den_detrend den_meica den_tissues applynuisance scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -101,8 +101,6 @@ done
 aTEs=( ${TEs} )
 nTE=${#aTEs[@]}
 fileprx=sub-${sub}_ses-${ses}
-[[ ${anatsfx} != "none" ]] && anat=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${anatsfx} || anat=none
-[[ ${asegsfx} != "none" ]] && aseg=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${asegsfx} || aseg=none
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
 ######################################
