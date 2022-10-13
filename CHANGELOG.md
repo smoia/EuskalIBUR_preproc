@@ -1,3 +1,15 @@
+# 0.3.1 (Thu Oct 13 2022)
+
+#### 🐛 Bug Fix
+
+- fix: average tissue message (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.3.0 (Fri Oct 29 2021)
 
 #### 💥 Breaking Change during development
