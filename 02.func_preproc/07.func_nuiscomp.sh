@@ -165,7 +165,7 @@ then
  -stim_file 1 ${func}_avg_tissue.1D'[0]' -stim_base 1 -stim_label 1 CSF \
  -stim_file 2 ${func}_avg_tissue.1D'[2]' -stim_base 2 -stim_label 2 WM"
 else
-	echo "Skip detrend"
+	echo "Skip average tissues"
 fi
 
 # Report the 3dDeconvolve call
