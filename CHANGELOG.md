@@ -1,3 +1,19 @@
+# 0.3.3 (Sun Oct 23 2022)
+
+#### 🐛 Bug Fix
+
+- fix: Fix brain extraction due to 3dSkullstrip behaviour with plumb volumes (s.moia@bcbl.eu)
+
+#### ⚠️ Pushed to `master`
+
+- int: Improve logging (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.3.2 (Sun Oct 23 2022)
 
 :tada: This release contains work from a new contributor! :tada:
