@@ -43,7 +43,8 @@ fwhm=none
 
 ### print input
 printline=$( basename -- $0 )
-echo "${printline} " "$@"
+echo "${printline}" "$@"
+printcall="${printline} $*"
 # Parsing required and optional variables with flags
 # Also checking if a flag is the help request or the version
 while [ ! -z "$1" ]
@@ -123,8 +124,16 @@ exec 3>&1 4>&2
 exec 1>${logfile} 2>&1
 
 date
+echo ""
+echo ${printcall}
+echo ""
+checkreqvar sub ses prjname wdr
+checkoptvar anat1sfx anat2sfx voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
+
 echo "************************************"
 
+echo ""
+echo ""
 
 echo "************************************"
 echo "***    Preproc sub ${sub} ses ${ses} ${prjname}"
