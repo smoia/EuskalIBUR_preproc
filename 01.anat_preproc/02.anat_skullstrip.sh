@@ -73,6 +73,9 @@ then
 	3dSkullStrip -input ${anat_in}.nii.gz \
 				 -prefix ${anat}_brain.nii.gz \
 				 -orig_vol -overwrite
+	# Momentarily forcefully change header because SkullStrips plumbs the volume.
+	3dcalc -a ${anat_in}.nii.gz -b ${anat}_brain.nii.gz -expr "a*step(b)" \
+		   -prefix ${anat}_brain.nii.gz -overwrite
 	fslmaths ${anat}_brain -bin ${anat}_brain_mask
 	mask=${anat}_brain_mask
 	echo ""
