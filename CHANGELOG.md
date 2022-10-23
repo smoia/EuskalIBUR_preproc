@@ -1,3 +1,19 @@
+# 0.3.2 (Sun Oct 23 2022)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Stefano Moia ([@smoia](https://github.com/smoia)), for all your work!
+
+#### ⚠️ Pushed to `master`
+
+- Make a tmp folder per subject ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.3.1 (Thu Oct 13 2022)
 
 #### 🐛 Bug Fix
