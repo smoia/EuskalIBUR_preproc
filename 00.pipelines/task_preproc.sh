@@ -90,6 +90,8 @@ fileprx=sub-${sub}_ses-${ses}
 [[ ${asegsfx} != "none" ]] && aseg=${wdr}/sub-${sub}/ses-${ses}/anat/${fileprx}_${asegsfx} || aseg=none
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
+### Cath errors and exit on them
+set -e
 ######################################
 #########    Task preproc    #########
 ######################################

@@ -103,6 +103,8 @@ nTE=${#aTEs[@]}
 fileprx=sub-${sub}_ses-${ses}
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
+### Cath errors and exit on them
+set -e
 ######################################
 #########    Task preproc    #########
 ######################################

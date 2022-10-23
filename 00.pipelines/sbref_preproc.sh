@@ -65,6 +65,8 @@ fileprx=sub-${sub}_ses-${ses}
 adir=${wdr}/sub-${sub}/ses-${ses}/anat
 fmapdir=${wdr}/sub-${sub}/ses-${ses}/fmap
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
+### Cath errors and exit on them
+set -e
 ######################################
 #########    SBRef preproc   #########
 ######################################

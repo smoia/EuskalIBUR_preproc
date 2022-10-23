@@ -74,6 +74,8 @@ done
 anat1=sub-${sub}_ses-${ses}_${anat1sfx}
 adir=${wdr}/sub-${sub}/ses-${ses}/anat
 [[ ${tmp} != "." ]] && anat1=${tmp}/${anat1}
+### Cath errors and exit on them
+set -e
 ######################################
 #########    Anat preproc    #########
 ######################################

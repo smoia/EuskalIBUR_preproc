@@ -62,6 +62,8 @@ do
 	eval "${var}=${!var%.nii*}"
 done
 
+### Cath errors and exit on them
+set -e
 ######################################
 ######### Script starts here #########
 ######################################
