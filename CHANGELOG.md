@@ -1,3 +1,16 @@
+# 0.4.0 (Sun Oct 23 2022)
+
+#### 🚀 Enhancement
+
+- feat: Exit on errors (s.moia@bcbl.eu)
+- feat: Improve anat normalisation (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.3.3 (Sun Oct 23 2022)
 
 #### 🐛 Bug Fix
