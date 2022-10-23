@@ -26,7 +26,7 @@ do
 	case "$1" in
 		-anat_in)	anat_in=$2;shift;;
 		-adir)		adir=$2;shift;;
-		-std)		std=$2;shift;;
+		-std)		std_in=$2;shift;;
 		-mmres)		mmres=$2;shift;;
 
 		-h)			displayhelp;;
@@ -37,10 +37,10 @@ do
 done
 
 # Check input
-checkreqvar anat_in adir std mmres
+checkreqvar anat_in adir std_in mmres
 
 ### Remove nifti suffix
-for var in anat_in std
+for var in anat_in std_in
 do
 	eval "${var}=${!var%.nii*}"
 done
@@ -55,14 +55,14 @@ cd ${adir} || exit
 
 #Read and process input
 anat=$( basename ${anat_in%_*} )
+std=$( basename ${std_in} )
+
+if_missing_do stop ${anat}.nii.gz
 
 ## 01. Normalization
-
-if [[ ! -e ../reg/${std}_mask.nii.gz ]]
-then
-	echo "Creating mask for ${std}"
-	fslmaths ../reg/${std} -bin ../reg/${std}_mask
-fi
+[[ "${std}" != "${std_in}" ]] && if_missing_do copy ${std_in}.nii.gz ../reg/${std}.nii.gz
+if_missing_do stop ../reg/${std}.nii.gz
+if_missing_do mask ../reg/${std}.nii.gz ../reg/${std}_mask.nii.gz
 
 anatsfx=${anat#*ses-*_}
 anatprx=${anat%_${anatsfx}}
