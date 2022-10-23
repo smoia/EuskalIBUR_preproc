@@ -158,7 +158,7 @@ then
 fi
 
 wdr=${wdr}/derivatives/${prjname}
-tmp=${tmp}/tmp_${prjname}
+tmp=${tmp}/tmp_${prjname}_${sub}
 
 ######################################
 #########    Anat preproc    #########
