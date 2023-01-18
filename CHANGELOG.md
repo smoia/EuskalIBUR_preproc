@@ -1,3 +1,15 @@
+# 0.5.0 (Wed Jan 18 2023)
+
+#### 🚀 Enhancement
+
+- feat: Improve tmp parallelisation ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.4.0 (Sun Oct 23 2022)
 
 #### 🚀 Enhancement
