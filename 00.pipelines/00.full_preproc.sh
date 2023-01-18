@@ -97,9 +97,6 @@ do
 done
 
 #Derived variables
-fileprx=sub-${sub}_ses-${ses}
-[[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
-
 first_ses_path=${wdr}/derivatives/${prjname}/sub-${sub}/ses-01
 uni_sbref=${first_ses_path}/reg/sub-${sub}_sbref
 uni_adir=${first_ses_path}/anat
@@ -169,7 +166,7 @@ then
 fi
 
 wdr=${wdr}/derivatives/${prjname}
-tmp=${tmp}/tmp_${prjname}_${sub}
+tmp=${tmp}/tmp_${prjname}_${sub}_${ses}
 
 ######################################
 #########    Anat preproc    #########
