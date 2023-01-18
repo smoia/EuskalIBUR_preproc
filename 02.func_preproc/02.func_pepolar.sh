@@ -83,7 +83,7 @@ then
 
 	pepolar=${func}_topup
 
-	mkdir ${pepolar}
+	replace_and mkdir ${pepolar}
 	fslmerge -t ${pepolar}/mgdmap ${breverse} ${bforward}
 
 	cd ${pepolar}
