@@ -59,7 +59,7 @@ cd ${adir} || exit
 anat=$( basename ${anat_in%_*} )
 std=$( basename ${std_in} )
 
-if_missing_do stop ${anat}.nii.gz
+if_missing_do stop ${anat_in}.nii.gz
 
 ## 01. Normalization
 [[ "${std}" != "${std_in}" ]] && if_missing_do copy ${std_in}.nii.gz ../reg/${std}.nii.gz
