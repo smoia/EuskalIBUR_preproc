@@ -1,3 +1,15 @@
+# 0.5.3 (Wed Jan 18 2023)
+
+#### 🐛 Bug Fix
+
+- fix: Fix directory creation ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.5.2 (Wed Jan 18 2023)
 
 #### 🐛 Bug Fix
