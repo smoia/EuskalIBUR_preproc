@@ -1,3 +1,15 @@
+# 0.5.1 (Wed Jan 18 2023)
+
+#### 🐛 Bug Fix
+
+- fix: Stop on input anatomical file, not on basename. ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.5.0 (Wed Jan 18 2023)
 
 #### 🚀 Enhancement
