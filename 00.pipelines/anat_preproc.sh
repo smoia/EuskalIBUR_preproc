@@ -59,7 +59,7 @@ done
 
 # Check input
 checkreqvar sub ses wdr
-[[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
+scriptdir=${scriptdir%/}
 checkoptvar anat1sfx anat2sfx std mmres normalise scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x

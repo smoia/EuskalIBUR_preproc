@@ -84,7 +84,7 @@ done
 
 # Check input
 checkreqvar sub ses task TEs wdr
-[[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
+scriptdir=${scriptdir%/}
 [[ ${sbref} == "default" ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
 [[ ${mask} == "default" ]] && mask=${sbref}_brain_mask
 checkoptvar anat aseg voldiscard polort sbref mask slicetimeinterp despike fwhm den_motreg den_detrend den_meica den_tissues applynuisance scriptdir tmp debug

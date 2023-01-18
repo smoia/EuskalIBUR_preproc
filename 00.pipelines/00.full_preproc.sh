@@ -85,7 +85,7 @@ done
 
 # Check input
 checkreqvar sub ses prjname wdr
-[[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
+scriptdir=${scriptdir%/}
 checkoptvar anat1sfx anat2sfx voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x

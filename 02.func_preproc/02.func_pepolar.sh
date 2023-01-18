@@ -23,7 +23,7 @@ pepolar=none
 breverse=none
 bforward=none
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-scriptdir=${scriptdir%/*}/..
+scriptdir=${scriptdir%/}/..
 tmp=.
 
 ### print input

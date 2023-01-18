@@ -51,7 +51,7 @@ done
 
 # Check input
 checkreqvar sub ses wdr
-[[ ${scriptdir: -1} == "/" ]] && scriptdir=${scriptdir%/}
+scriptdir=${scriptdir%/}
 checkoptvar anat scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
@@ -103,7 +103,8 @@ echo "************************************"
 echo "************************************"
 
 ${scriptdir}/02.func_pepolar.sh -func_in ${sbref}_cr -fdir ${fdir} \
-								-breverse ${brev} -bforward ${bfor} -tmp ${tmp}
+								-breverse ${brev} -bforward ${bfor} \
+								-tmp ${tmp}
 
 echo "************************************"
 echo "*** Func spacecomp breathhold SBREF echo 1"
