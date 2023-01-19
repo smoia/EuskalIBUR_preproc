@@ -222,13 +222,16 @@ fi
 echo ""
 echo ""
 
+aseg=${uni_adir}/${anat1}
+anat=${uni_adir}/${anat2}
+
 if [[ "${run_sbref}" == "yes" ]]
 then
 	if [ ${ses} -eq 1 ]
 	then
 		# If asked & it's ses 01, run sbref
 		${scriptdir}/sbref_preproc.sh -sub ${sub} -ses ${ses} -wdr ${wdr} \
-									  -anat ${anat2} -tmp ${tmp}
+									  -anat ${anat} -tmp ${tmp}
 	elif [ ${ses} -lt 1 ]
 	then
 		echo "ERROR: the session number introduced makes no sense."
