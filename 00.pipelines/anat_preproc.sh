@@ -143,3 +143,5 @@ then
 fi
 
 [[ ${debug} == "yes" ]] && set +x
+
+exit 0

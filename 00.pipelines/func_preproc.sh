@@ -265,3 +265,5 @@ do
 done
 
 [[ ${debug} == "yes" ]] && set +x
+
+exit 0

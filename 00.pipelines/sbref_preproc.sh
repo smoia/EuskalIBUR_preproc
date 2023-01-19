@@ -133,3 +133,5 @@ echo "cp -R ${sbreffunc}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbr
 cp -R ${sbreffunc}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/.
 
 [[ ${debug} == "yes" ]] && set +x
+
+exit 0
