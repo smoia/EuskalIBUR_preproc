@@ -1,3 +1,15 @@
+# 0.5.4 (Thu Jan 19 2023)
+
+#### 🐛 Bug Fix
+
+- fix: Fix anatomical folder (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.5.3 (Wed Jan 18 2023)
 
 #### 🐛 Bug Fix
