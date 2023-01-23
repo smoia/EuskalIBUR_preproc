@@ -128,13 +128,13 @@ tmpseg=${tmp}/$( basename ${aseg} )_seg2sbref
 #Plot some grayplots!
 
 3dGrayplot -input ${func_in}.nii.gz -mask ${tmpseg}.nii.gz \
-		   -prefix ${tmp}/${func}_gp_PVO.png -dimen 1800 1200 \
+		   -prefix ${func}_gp_PVO.png -dimen 1800 1200 \
 		   -polort ${polort} -pvorder -percent -range 3
 3dGrayplot -input ${func_in}.nii.gz -mask ${tmpseg}.nii.gz \
-		   -prefix ${tmp}/${func}_gp_IJK.png -dimen 1800 1200 \
+		   -prefix ${func}_gp_IJK.png -dimen 1800 1200 \
 		   -polort ${polort} -ijkorder -percent -range 3
 3dGrayplot -input ${func_in}.nii.gz -mask ${tmpseg}.nii.gz \
-		   -prefix ${tmp}/${func}_gp_peel.png -dimen 1800 1200 \
+		   -prefix ${func}_gp_peel.png -dimen 1800 1200 \
 		   -polort ${polort} -peelorder -percent -range 3
 
 cd ${cwd}

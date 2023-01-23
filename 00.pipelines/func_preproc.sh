@@ -164,14 +164,6 @@ do
 	${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat_in ${anat} \
 									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
 
-	bold_in=${bold%_*}
-	echo "mv ${bold_in}_gp_PVO.png ${fdir}/$( basename ${bold_in} )_raw_gp_PVO.png"
-	mv ${bold_in}_gp_PVO.png ${fdir}/$( basename ${bold_in} )_raw_gp_PVO.png
-	echo "mv ${bold_in}_gp_IJK.png ${fdir}/$( basename ${bold_in} )_raw_gp_IJK.png"
-	mv ${bold_in}_gp_IJK.png ${fdir}/$( basename ${bold_in} )_raw_gp_IJK.png
-	echo "mv ${bold_in}_gp_peel.png ${fdir}/$( basename ${bold_in} )_raw_gp_peel.png"
-	mv ${bold_in}_gp_peel.png ${fdir}/$( basename ${bold_in} )_raw_gp_peel.png
-
 done
 
 echo "************************************"
@@ -254,13 +246,6 @@ do
 	echo "************************************"
 	${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat_in ${anat} \
 									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
-
-	echo "mv ${bold}_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png"
-	mv ${bold}_gp_PVO.png ${fdir}/00.${boldout}_native_preprocessed_gp_PVO.png
-	echo "mv ${bold}_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png"
-	mv ${bold}_gp_IJK.png ${fdir}/00.${boldout}_native_preprocessed_gp_IJK.png
-	echo "mv ${bold}_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png"
-	mv ${bold}_gp_peel.png ${fdir}/00.${boldout}_native_preprocessed_gp_peel.png
 
 done
 
