@@ -30,7 +30,7 @@ tasks="motor simon pinel breathhold rest_run-01 rest_run-02 rest_run-03 rest_run
 
 std=MNI152_T1_1mm_brain
 mmres=2.5
-normalise=no
+normalise=yes
 voldiscard=10
 slicetimeinterp=none
 despike=no
@@ -55,26 +55,26 @@ do
 		-wdr)		wdr=$2;shift;;
 		-prjname)	prjname=$2;shift;;
 
-		-TEs)				TEs="$2";shift;;
-		-tasks)				tasks="$2";shift;;
-		-anat1sfx)			anat1sfx=$2;shift;;
-		-anat2sfx)			anat2sfx=$2;shift;;
-		-std)				std=$2;shift;;
-		-mmres)				mmres=$2;shift;;
-		-normalise) 		normalise=yes;;
-		-voldiscard)		voldiscard=$2;shift;;
-		-sbref)				sbref=$2;shift;;
-		-mask)				mask="$2";shift;;
-		-fwhm)				fwhm="$2";shift;;
-		-slicetimeinterp)	slicetimeinterp="$2";shift;;
-		-despike)			despike=yes;;
-		-scriptdir)			scriptdir=$2;shift;;
-		-tmp)				tmp=$2;shift;;
-		-overwrite)			overwrite=yes;;
-		-skip_prep)			run_prep=no;;
-		-skip_anat)			run_anat=no;;
-		-skip_sbref)		run_sbref=no;;
-		-debug)				debug=yes;;
+		-TEs)					TEs="$2";shift;;
+		-tasks)					tasks="$2";shift;;
+		-anat1sfx)				anat1sfx=$2;shift;;
+		-anat2sfx)				anat2sfx=$2;shift;;
+		-std)					std=$2;shift;;
+		-mmres)					mmres=$2;shift;;
+		-skip_normalisation)	normalise=no;;
+		-voldiscard)			voldiscard=$2;shift;;
+		-sbref)					sbref=$2;shift;;
+		-mask)					mask="$2";shift;;
+		-fwhm)					fwhm="$2";shift;;
+		-slicetimeinterp)		slicetimeinterp="$2";shift;;
+		-despike)				despike=yes;;
+		-scriptdir)				scriptdir=$2;shift;;
+		-tmp)					tmp=$2;shift;;
+		-overwrite)				overwrite=yes;;
+		-skip_prep)				run_prep=no;;
+		-skip_anat)				run_anat=no;;
+		-skip_sbref)			run_sbref=no;;
+		-debug)					debug=yes;;
 
 		-h)			displayhelp;;
 		-v)			version;exit 0;;
@@ -84,9 +84,11 @@ do
 done
 
 # Check input
-checkreqvar sub ses prjname wdr
+checkreqvar sub ses wdr prjname
 scriptdir=${scriptdir%/}
-checkoptvar anat1sfx anat2sfx voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
+checkoptvar TEs tasks anat1sfx anat2sfx std mmres normalise voldiscard sbref \
+			mask fwhm slicetimeinterp despike scriptdir tmp overwrite run_prep \
+			run_anat run_sbref debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -183,10 +185,20 @@ then
 	if [ ${ses} -eq 1 ]
 	then
 		# If asked & it's ses 01, run anat
-		${scriptdir}/anat_preproc.sh -sub ${sub} -ses ${ses} -wdr ${wdr} \
-												  -anat1sfx ${anat1sfx} -anat2sfx ${anat2sfx} \
-												  -std ${std} -mmres ${mmres} -normalise \
-												  -tmp ${tmp}
+		runanatpreproc="${scriptdir}/anat_preproc.sh -sub ${sub} -ses ${ses}"
+		runanatpreproc="${runanatpreproc} -wdr ${wdr} -std ${std} -mmres ${mmres}"
+		runanatpreproc="${runanatpreproc} -anat1sfx ${anat1sfx} -anat2sfx ${anat2sfx}"
+		runanatpreproc="${runanatpreproc} -tmp ${tmp}"
+		
+		[[ ${normalise} == "yes" ]] && runanatpreproc="${runanatpreproc} -normalise"
+
+		echo "# Generating the command:"
+		echo ""
+		echo "${runanatpreproc}"
+		echo ""
+
+		eval ${runanatpreproc}
+
 	elif [ ${ses} -lt 1 ]
 	then
 		echo "ERROR: the session number introduced makes no sense."
@@ -286,6 +298,7 @@ then
 		runfuncpreproc="${runfuncpreproc} -mask ${mask} -fwhm ${fwhm} -tmp ${tmp}"
 		runfuncpreproc="${runfuncpreproc} -den_motreg -den_detrend"
 		
+		[[ ${despike} == "yes" ]] && runfuncpreproc="${runfuncpreproc} -despike"
 		if [[ ${task} != "breathhold" ]]
 		then
 			runfuncpreproc="${runfuncpreproc} -den_meica"
