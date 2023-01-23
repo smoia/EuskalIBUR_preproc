@@ -1,3 +1,15 @@
+# 0.6.0 (Mon Jan 23 2023)
+
+#### 🚀 Enhancement
+
+- feat: Improve full preproc ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.5.5 (Mon Jan 23 2023)
 
 #### 🐛 Bug Fix
