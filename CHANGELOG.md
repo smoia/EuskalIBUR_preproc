@@ -1,3 +1,20 @@
+# 0.5.5 (Mon Jan 23 2023)
+
+#### 🐛 Bug Fix
+
+- fix: Greyplots in fdir, remove moving, better setup. ([@smoia](https://github.com/smoia))
+
+#### ⚠️ Pushed to `master`
+
+- Fix: remove copy of non-existent file ([@smoia](https://github.com/smoia))
+- Fix: explicitly exit 0 ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.5.4 (Thu Jan 19 2023)
 
 #### 🐛 Bug Fix
