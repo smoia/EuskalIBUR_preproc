@@ -214,6 +214,9 @@ then
 		exit 1
 	elif [ -d ${uni_adir} ]
 	then
+		echo ""
+		echo "Copy anatomical files from sessions 01"
+		echo ""
 		# If it isn't ses 01, and that ses was run, copy relevant files.
 		mkdir -p ${wdr}/sub-${sub}/ses-${ses}/anat
 		cp -R ${uni_adir}/* ${wdr}/sub-${sub}/ses-${ses}/anat/.
@@ -259,12 +262,15 @@ then
 		exit
 	elif [ -e "${uni_sbref}.nii.gz" ]
 	then
+		echo ""
+		echo "Copy SBRef files from sessions 01"
+		echo ""
 		# If it isn't ses 01, and that ses was run, copy relevant files.
-		cp ${uni_sbref}* ${wdr}/sub-${sub}/ses-${ses}/reg/.
-		[[ ${anat2} != "none" ]] && imcp ${wdr}/sub-${sub}/ses-01/reg/${anat2}2sbref ${wdr}/sub-${sub}/ses-${ses}/reg/${anat2}2sbref
-
 		mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup
 		cp -R ${uni_sbref}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/.
+
+		cp -R ${uni_sbref}* ${wdr}/sub-${sub}/ses-${ses}/reg/.
+		[[ ${anat2} != "none" ]] && imcp ${wdr}/sub-${sub}/ses-01/reg/${anat2}2sbref ${wdr}/sub-${sub}/ses-${ses}/reg/${anat2}2sbref
 
 		cp ${wdr}/sub-${sub}/ses-01/reg/${anat2}2sbref_fsl.mat \
 		   ${wdr}/sub-${sub}/ses-${ses}/reg/${anat2}2sbref_fsl.mat
