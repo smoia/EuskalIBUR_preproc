@@ -106,8 +106,8 @@ if_missing_do copy ${stdpath}/${std}.nii.gz ${sesfld}/reg/${std}.nii.gz
 [[ -e ${stdpath}/${std}_resamp_${mmres}mm.nii.gz ]] && imcp ${stdpath}/${std}_resamp_${mmres}mm.nii.gz \
 															${sesfld}/reg/${std}_resamp_${mmres}mm.nii.gz
 
+[[ ${ses} == "01" ]] && imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz ${tmp}/.
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*.nii.gz ${tmp}/.
-imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz ${tmp}/.
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz ${tmp}/.
 
 cd ${cwd}
