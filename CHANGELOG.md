@@ -1,3 +1,15 @@
+# 0.7.0 (Mon Feb 06 2023)
+
+#### 🚀 Enhancement
+
+- feat: Allow skipping greyplots, and allow a full preproc of only optcom or 2e ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.6.2 (Mon Jan 30 2023)
 
 #### 🐛 Bug Fix
