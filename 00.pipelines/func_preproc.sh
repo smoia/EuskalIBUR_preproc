@@ -9,7 +9,7 @@ echo "sub ses task TEs wdr"
 echo "Optional:"
 echo "anat aseg voldiscard polort sbref mask slicetimeinterp \
 	  despike fwhm den_motreg den_detrend den_meica den_tissues \
-	  applynuisance only_echoes only_optcom scriptdir tmp debug"
+	  applynuisance only_echoes only_optcom greyplot scriptdir tmp debug"
 exit ${1:-0}
 }
 
@@ -35,6 +35,7 @@ den_tissues=no
 applynuisance=no
 preproc_echoes=yes
 preproc_optcom=yes
+greyplot=yes
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 scriptdir=${scriptdir%/*}/02.func_preproc
@@ -71,6 +72,8 @@ do
 		-applynuisance)		applynuisance=yes;;
 		-only_echoes)		preproc_optcom=no;;
 		-only_optcom)		preproc_echoes=no;;
+		-optcom_and_2e)		preproc_echoes=second; preproc_optcom=yes;;
+		-skip_greyplots)	greyplot=no;;
 		-scriptdir)			scriptdir=$2;shift;;
 		-tmp)				tmp=$2;shift;;
 		-debug)				debug=yes;;
@@ -87,7 +90,9 @@ checkreqvar sub ses task TEs wdr
 scriptdir=${scriptdir%/}
 [[ ${sbref} == "default" ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
 [[ ${mask} == "default" ]] && mask=${sbref}_brain_mask
-checkoptvar anat aseg voldiscard polort sbref mask slicetimeinterp despike fwhm den_motreg den_detrend den_meica den_tissues applynuisance scriptdir tmp debug
+checkoptvar anat aseg voldiscard polort sbref mask slicetimeinterp despike fwhm  \
+			den_motreg den_detrend den_meica den_tissues applynuisance preproc_optcom \
+			preproc_echoes greyplot scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -155,15 +160,17 @@ do
 	${scriptdir}/04.func_realign.sh -func_in ${bold} -fmat ${fmat} -mask ${mask} \
 									-fdir ${fdir} -mref ${sbref} -tmp ${tmp}
 
-	echo "************************************"
-	echo "*** Func greyplot ${task} BOLD echo ${e} (pre)"
-	echo "************************************"
-	echo "************************************"
-	echo "bold=${fileprx}_task-${task}_echo-${e}_bold_bet"
-	bold=${fileprx}_task-${task}_echo-${e}_bold_bet
-	${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat_in ${anat} \
-									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
-
+	if [[ ${greyplot} == "yes" ]]
+	then
+		echo "************************************"
+		echo "*** Func greyplot ${task} BOLD echo ${e} (pre)"
+		echo "************************************"
+		echo "************************************"
+		echo "bold=${fileprx}_task-${task}_echo-${e}_bold_bet"
+		bold=${fileprx}_task-${task}_echo-${e}_bold_bet
+		${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat_in ${anat} \
+										 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
+	fi
 done
 
 echo "************************************"
@@ -181,6 +188,7 @@ echo "************************************"
 ${scriptdir}/06.func_optcom.sh -func_in ${fmat}_bet -fdir ${fdir} -TEs "${TEs}" -tmp ${tmp}
 
 [[ ${preproc_echoes} == "yes" ]] && preproc_vols=( $( seq 1 ${nTE}) ) || preproc_vols=()
+[[ ${preproc_echoes} == "second" ]] && preproc_vols=( 2 )
 [[ ${preproc_optcom} == "yes" ]] && preproc_vols=( ${preproc_vols[@]} optcom )
 
 # As it's ${task}, only skip denoising (but create matrix nonetheless)!
@@ -240,13 +248,15 @@ do
 		   -prefix ${fdir}/00.${boldout}_native_preprocessed.nii.gz \
 		   -short -gscale -overwrite
 
-	echo "************************************"
-	echo "*** Func greyplot ${task} BOLD echo ${e} (post)"
-	echo "************************************"
-	echo "************************************"
-	${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat_in ${anat} \
-									 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
-
+	if [[ ${greyplot} == "yes" ]]
+	then
+		echo "************************************"
+		echo "*** Func greyplot ${task} BOLD echo ${e} (post)"
+		echo "************************************"
+		echo "************************************"
+		${scriptdir}/12.func_grayplot.sh -func_in ${boldsource} -fdir ${fdir} -anat_in ${anat} \
+										 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
+	fi
 done
 
 [[ ${debug} == "yes" ]] && set +x

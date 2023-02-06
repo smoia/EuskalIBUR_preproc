@@ -36,6 +36,9 @@ slicetimeinterp=none
 despike=no
 sbref=default
 mask=default
+preproc_echoes=yes
+preproc_optcom=yes
+greyplot=yes
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 debug=no
@@ -74,6 +77,10 @@ do
 		-skip_prep)				run_prep=no;;
 		-skip_anat)				run_anat=no;;
 		-skip_sbref)			run_sbref=no;;
+		-only_echoes)			preproc_optcom=no;;
+		-only_optcom)			preproc_echoes=no;;
+		-optcom_and_2e)			preproc_echoes=second; preproc_optcom=yes;;
+		-skip_greyplots)		greyplot=no;;
 		-debug)					debug=yes;;
 
 		-h)			displayhelp;;
@@ -88,7 +95,7 @@ checkreqvar sub ses wdr prjname
 scriptdir=${scriptdir%/}
 checkoptvar TEs tasks anat1sfx anat2sfx std mmres normalise voldiscard sbref \
 			mask fwhm slicetimeinterp despike scriptdir tmp overwrite run_prep \
-			run_anat run_sbref debug
+			run_anat run_sbref preproc_optcom preproc_echoes greyplot debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -303,7 +310,12 @@ then
 		runfuncpreproc="${runfuncpreproc} -sbref ${sbref}"
 		runfuncpreproc="${runfuncpreproc} -mask ${mask} -fwhm ${fwhm} -tmp ${tmp}"
 		runfuncpreproc="${runfuncpreproc} -den_motreg -den_detrend"
-		
+
+		[[ ${preproc_optcom} == "no" ]] && runfuncpreproc="${runfuncpreproc} -only_echoes"
+		[[ ${preproc_echoes} == "no" ]] && runfuncpreproc="${runfuncpreproc} -only_optcom"
+		[[ ${preproc_echoes} == "second" ]] && runfuncpreproc="${runfuncpreproc} -optcom_and_2e"
+		[[ ${greyplot} == "no" ]] && runfuncpreproc="${runfuncpreproc} -skip_greyplots"
+
 		[[ ${despike} == "yes" ]] && runfuncpreproc="${runfuncpreproc} -despike"
 		if [[ ${task} != "breathhold" ]]
 		then
