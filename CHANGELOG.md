@@ -1,3 +1,15 @@
+# 0.7.1 (Wed Feb 15 2023)
+
+#### 🐛 Bug Fix
+
+- fix: don't make a big deal out of SBRef folder existing ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.7.0 (Mon Feb 06 2023)
 
 #### 🚀 Enhancement
