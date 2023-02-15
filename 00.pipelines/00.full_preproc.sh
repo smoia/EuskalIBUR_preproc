@@ -273,7 +273,7 @@ then
 		echo "Copy SBRef files from sessions 01"
 		echo ""
 		# If it isn't ses 01, and that ses was run, copy relevant files.
-		mkdir ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup
+		mkdir -p ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup
 		cp -R ${uni_sbref}_topup/* ${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref_topup/.
 
 		cp -R ${uni_sbref}* ${wdr}/sub-${sub}/ses-${ses}/reg/.
