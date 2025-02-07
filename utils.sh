@@ -70,3 +70,28 @@ case $1 in
 	* ) echo "This is wrong"; exit ;;
 esac
 }
+
+parse_json_name() {
+	bidslabels="task acq ce rec dir run mod echo part chunk recording"
+	if [[ -f ${2} ]]
+	then
+		echo "Looking for '${1}' bids labels in json ${2}"
+		if [[ $(jq .${1} ${2}) != "null" ]];
+		then
+			bidsinfo=''
+			for key in ${bidslabels};
+			do
+				value=$(jq -r .${1}.${key} ${2})
+				[[ ${value} != "null" ]] && bidsinfo="${bidsinfo}_${key}-${value}"
+			done
+			echo "'${1}' bids labels are '${bidsinfo}'"
+			# exit
+		else
+			echo "'${1}' bids labels not found in json ${2}"
+			# exit 1
+		fi
+	else
+		echo "Could not find '${2}'"
+	fi
+}
+
