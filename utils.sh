@@ -71,27 +71,26 @@ case $1 in
 esac
 }
 
-parse_json_name() {
-	bidslabels="task acq ce rec dir run mod echo part chunk recording"
+parse_filename_from_json() {
+	local bidslabels="task acq ce rec dir run mod echo part chunk recording suffix"
 	if [[ -f ${2} ]]
 	then
-		echo "Looking for '${1}' bids labels in json ${2}"
 		if [[ $(jq .${1} ${2}) != "null" ]];
 		then
-			bidsinfo=''
+			local bidsinfo=''
+			local key
 			for key in ${bidslabels};
 			do
+				local value
 				value=$(jq -r .${1}.${key} ${2})
 				[[ ${value} != "null" ]] && bidsinfo="${bidsinfo}_${key}-${value}"
 			done
-			echo "'${1}' bids labels are '${bidsinfo}'"
-			# exit
+			echo "${bidsinfo}"
 		else
-			echo "'${1}' bids labels not found in json ${2}"
-			# exit 1
+			echo "none"
 		fi
 	else
-		echo "Could not find '${2}'"
+		exit 1
 	fi
 }
 

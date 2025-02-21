@@ -21,6 +21,7 @@ fi
 # Preparing the default values for variables
 anat1sfx=acq-uni_T1w
 anat2sfx=none
+fs_json=none
 std=MNI152_T1_1mm_brain
 mmres=2.5
 normalise=no
@@ -43,6 +44,7 @@ do
 
 		-anat1sfx)	anat1sfx=$2;shift;;
 		-anat2sfx)	anat2sfx=$2;shift;;
+		-fs_json)	fs_json=$2;shift;;
 		-std)		std=$2;shift;;
 		-mmres)		mmres=$2;shift;;
 		-normalise) normalise=yes;;
@@ -60,7 +62,7 @@ done
 # Check input
 checkreqvar sub ses wdr
 scriptdir=${scriptdir%/}
-checkoptvar anat1sfx anat2sfx std mmres normalise scriptdir tmp debug
+checkoptvar anat1sfx anat2sfx fs_json std mmres normalise scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -71,6 +73,9 @@ do
 done
 
 #Derived variables
+[[ ${fs_json} != "none" ]] && anat1sfx=$(parse_filename_from_json anat1 ${fs_json})
+[[ ${fs_json} != "none" ]] && anat2sfx=$(parse_filename_from_json anat2 ${fs_json})
+
 anat1=sub-${sub}_ses-${ses}_${anat1sfx}
 adir=${wdr}/sub-${sub}/ses-${ses}/anat
 [[ ${tmp} != "." ]] && anat1=${tmp}/${anat1}

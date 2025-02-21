@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "sub ses task TEs wdr"
 echo "Optional:"
-echo "anat aseg voldiscard polort sbref mask slicetimeinterp \
+echo "fs_json anat aseg voldiscard polort sbref mask slicetimeinterp \
 	  despike fwhm den_motreg den_detrend den_meica den_tissues \
 	  applynuisance only_echoes only_optcom greyplot scriptdir tmp debug"
 exit ${1:-0}
@@ -20,6 +20,7 @@ if [[ ( $# -eq 0 ) ]]
 fi
 
 # Preparing the default values for variables
+fs_json=none
 anat=none
 aseg=none
 voldiscard=10
@@ -56,6 +57,7 @@ do
 		-TEs)		TEs="$2";shift;;
 		-wdr)		wdr=$2;shift;;
 
+		-fs_json)			fs_json=$2;shift;;
 		-anat)				anat=$2;shift;;
 		-aseg)				aseg=$2;shift;;
 		-voldiscard)		voldiscard=$2;shift;;
@@ -90,29 +92,39 @@ checkreqvar sub ses task TEs wdr
 scriptdir=${scriptdir%/}
 [[ ${sbref} == "default" ]] && sbref=${wdr}/sub-${sub}/ses-${ses}/reg/sub-${sub}_sbref
 [[ ${mask} == "default" ]] && mask=${sbref}_brain_mask
-checkoptvar anat aseg voldiscard polort sbref mask slicetimeinterp despike fwhm  \
+checkoptvar fs_json anat aseg voldiscard polort sbref mask slicetimeinterp despike fwhm  \
 			den_motreg den_detrend den_meica den_tissues applynuisance preproc_optcom \
 			preproc_echoes greyplot scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
 ### Remove nifti suffix
-for var in anatsfx asegsfx
+for var in anat aseg
 do
 	eval "${var}=${!var%.nii*}"
 done
 
 #Derived variables
+
+if ${fs_json} != "none"; then boldsfx=$(parse_filename_from_json ${task} ${fs_json}); else boldsfx=echo-${e}_bold; fi
+if ${fs_json} != "none"; then fmatsfx=$(parse_filename_from_json ${task}fmat ${fs_json}); else fmatsfx=echo-1_bold; fi
+
 aTEs=( ${TEs} )
 nTE=${#aTEs[@]}
 fileprx=sub-${sub}_ses-${ses}
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
+func_in=${fileprx}_task-${task}_${boldsfx}
+
 ### Cath errors and exit on them
 set -e
 ######################################
 #########    Task preproc    #########
 ######################################
+
+# Find right filenames
+fileechosfx=$( basename ${func_in#*_echo-*_} )
+fileechoprx=${func_in%_echo-*}
 
 for e in $( seq 1 ${nTE} )
 do
@@ -121,8 +133,8 @@ do
 	echo "************************************"
 	echo "************************************"
 
-	echo "bold=${fileprx}_task-${task}_echo-${e}_bold"
-	bold=${fileprx}_task-${task}_echo-${e}_bold
+	echo "bold=${fileechoprx}_echo-${e}_${fileechosfx}"
+	bold=${fileechoprx}_echo-${e}_${fileechosfx}
 	runfunccorrect="${scriptdir}/01.func_correct.sh -func_in ${bold} -fdir ${fdir}"
 	runfunccorrect="${runfunccorrect} -voldiscard ${voldiscard}"
 	runfunccorrect="${runfunccorrect} -slicetimeinterp ${slicetimeinterp} -tmp ${tmp}"
@@ -142,8 +154,8 @@ echo "*** Func spacecomp ${task} echo 1"
 echo "************************************"
 echo "************************************"
 
-echo "fmat=${fileprx}_task-${task}_echo-1_bold"
-fmat=${fileprx}_task-${task}_echo-1_bold
+echo "fmat=${fileprx}_task-${task}_${fmatsfx}"
+fmat=${fileprx}_task-${task}_${fmatsfx}
 
 ${scriptdir}/03.func_spacecomp.sh -func_in ${fmat}_cr -fdir ${fdir} -anat ${anat} \
 								  -mref ${sbref} -aseg ${aseg} -tmp ${tmp}
@@ -155,8 +167,8 @@ do
 	echo "************************************"
 	echo "************************************"
 
-	echo "bold=${fileprx}_task-${task}_echo-${e}_bold_cr"
-	bold=${fileprx}_task-${task}_echo-${e}_bold_cr
+	echo "bold=${fileechoprx}_echo-${e}_${fileechosfx}_cr"
+	bold=${fileechoprx}_echo-${e}_${fileechosfx}_cr
 	${scriptdir}/04.func_realign.sh -func_in ${bold} -fmat ${fmat} -mask ${mask} \
 									-fdir ${fdir} -mref ${sbref} -tmp ${tmp}
 
@@ -166,8 +178,8 @@ do
 		echo "*** Func greyplot ${task} BOLD echo ${e} (pre)"
 		echo "************************************"
 		echo "************************************"
-		echo "bold=${fileprx}_task-${task}_echo-${e}_bold_bet"
-		bold=${fileprx}_task-${task}_echo-${e}_bold_bet
+		echo "bold=${fileechoprx}_echo-${e}_${fileechosfx}_bet"
+		bold=${fileechoprx}_echo-${e}_${fileechosfx}_bet
 		${scriptdir}/12.func_grayplot.sh -func_in ${bold} -fdir ${fdir} -anat_in ${anat} \
 										 -mref ${sbref} -aseg ${aseg} -polort 4 -tmp ${tmp}
 	fi

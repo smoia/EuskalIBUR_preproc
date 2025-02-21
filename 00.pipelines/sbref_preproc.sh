@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "sub ses wdr"
 echo "Optional:"
-echo "anat scriptdir tmp debug"
+echo "fs_json anat scriptdir tmp debug"
 exit ${1:-0}
 }
 
@@ -19,6 +19,7 @@ if [[ ( $# -eq 0 ) ]]
 fi
 
 # Preparing the default values for variables
+fs_json=none
 anat=sub-${sub}_ses-01_T2w
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
@@ -37,6 +38,7 @@ do
 		-ses)		ses=$2;shift;;
 		-wdr)		wdr=$2;shift;;
 
+		-fs_json)	fs_json=$2;shift;;
 		-anat)		anat=$2;shift;;
 		-scriptdir)	scriptdir=$2;shift;;
 		-tmp)		tmp=$2;shift;;
@@ -52,7 +54,7 @@ done
 # Check input
 checkreqvar sub ses wdr
 scriptdir=${scriptdir%/}
-checkoptvar anat scriptdir tmp debug
+checkoptvar fs_json anat scriptdir tmp debug
 
 [[ ${debug} == "yes" ]] && set -x
 
@@ -60,37 +62,49 @@ checkoptvar anat scriptdir tmp debug
 anat=${anat%.nii*}
 
 #Derived variables
+
+if ${fs_json} != "none"; then pepolarsfx=$(parse_filename_from_json pepolar ${fs_json}); else pepolarsfx=acq-breathhold_dir-PA_epi; fi
+if ${fs_json} != "none"; then sbrefsfx=$(parse_filename_from_json sbref ${fs_json}); else sbrefsfx=task-breathhold_rec-magnitude_echo-1_sbref; fi
+
 fileprx=sub-${sub}_ses-${ses}
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
 fmapdir=${wdr}/sub-${sub}/ses-${ses}/fmap
 fdir=${wdr}/sub-${sub}/ses-${ses}/func
+func_in=${fileprx}_${pepolarsfx}
+sbref=${fileprx}_${sbrefsfx}
+
 ### Cath errors and exit on them
 set -e
 ######################################
 #########    SBRef preproc   #########
 ######################################
 
+filedirsfx=$( basename ${func_in#*_dir-*_} )
+filedirprx=${func_in%_dir-*}
+fordir=$( basename ${func_in#*_dir-} )
+fordir=${fordir%_"$filedirsfx"}
+revdir=$( echo ${fordir} | rev )
+
 # Start funcpreproc by preparing the sbref.
-for d in AP PA
+for d in ${fordir} ${revdir}
 do
 	echo "************************************"
-	echo "*** Func correct breathhold PE ${d}"
+	echo "*** Func correct epi PE ${d}"
 	echo "************************************"
 	echo "************************************"
 
-	func=${fileprx}_acq-breathhold_dir-${d}_epi
+	func=${filedirprx}_dir-${d}_${filedirsfx}
 	${scriptdir}/01.func_correct.sh -func_in ${func} -fdir ${fmapdir} -tmp ${tmp}
 done
 
-bfor=${fileprx}_acq-breathhold_dir-PA_epi_cr
-brev=${fileprx}_acq-breathhold_dir-AP_epi_cr
+bfor=${filedirprx}_dir-${fordir}_${filedirsfx}_cr
+brev=${filedirprx}_dir-${revdir}_${filedirsfx}_cr
 
 echo "************************************"
 echo "*** Func correct breathhold SBREF echo 1"
 echo "************************************"
 echo "************************************"
 
-sbref=${fileprx}_task-breathhold_rec-magnitude_echo-1_sbref
 if [[ ! -e ${sbref}_cr.nii.gz ]]
 then
 	${scriptdir}/01.func_correct.sh -func_in ${sbref} -fdir ${fdir} -tmp ${tmp}

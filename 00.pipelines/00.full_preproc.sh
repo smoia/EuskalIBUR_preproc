@@ -25,6 +25,7 @@ run_anat=yes
 run_sbref=yes
 anat1sfx=acq-uni_T1w
 anat2sfx=T2w
+fs_json=none
 TEs="10.6 28.69 46.78 64.87 82.96"
 tasks="motor simon pinel breathhold rest_run-01 rest_run-02 rest_run-03 rest_run-04"  #none
 
@@ -62,6 +63,7 @@ do
 		-tasks)					tasks="$2";shift;;
 		-anat1sfx)				anat1sfx=$2;shift;;
 		-anat2sfx)				anat2sfx=$2;shift;;
+		-fs_json)				fs_json=$2;shift;;
 		-std)					std=$2;shift;;
 		-mmres)					mmres=$2;shift;;
 		-skip_normalisation)	normalise=no;;
@@ -93,14 +95,14 @@ done
 # Check input
 checkreqvar sub ses wdr prjname
 scriptdir=${scriptdir%/}
-checkoptvar TEs tasks anat1sfx anat2sfx std mmres normalise voldiscard sbref \
+checkoptvar TEs tasks anat1sfx anat2sfx fs_json std mmres normalise voldiscard sbref \
 			mask fwhm slicetimeinterp despike scriptdir tmp overwrite run_prep \
 			run_anat run_sbref preproc_optcom preproc_echoes greyplot debug
 
 [[ ${debug} == "yes" ]] && set -x
 
 ### Remove nifti suffix
-for var in anat1sfx anat2sfx std sbref mask
+for var in std sbref mask
 do
 	eval "${var}=${!var%.nii*}"
 done
@@ -136,7 +138,7 @@ echo ""
 echo ${printcall}
 echo ""
 checkreqvar sub ses prjname wdr
-checkoptvar anat1sfx anat2sfx voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
+checkoptvar anat1sfx anat2sfx fs_json voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
 
 echo "************************************"
 
@@ -183,6 +185,9 @@ tmp=${tmp}/tmp_${prjname}_${sub}_${ses}
 
 echo ""
 echo ""
+
+[[ ${fs_json} != "none" ]] && anat1sfx=$(parse_filename_from_json ${anat1} ${fs_json})
+[[ ${fs_json} != "none" ]] && anat2sfx=$(parse_filename_from_json ${anat2} ${fs_json})
 
 if [[ ${anat1sfx} != "none" ]]; then anat1=sub-${sub}_ses-01_${anat1sfx}; else anat1=none; fi
 if [[ ${anat2sfx} != "none" ]]; then anat2=sub-${sub}_ses-01_${anat2sfx}; else anat2=none; fi
