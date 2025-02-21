@@ -1,3 +1,21 @@
+# 0.8.0 (Fri Feb 21 2025)
+
+#### 🚀 Enhancement
+
+- feat: add a json parser for filenames in utils ([@smoia](https://github.com/smoia))
+- feat: Add tissue templates ([@smoia](https://github.com/smoia))
+
+#### ⚠️ Pushed to `master`
+
+- Add json specifier in all pipelines ([@smoia](https://github.com/smoia))
+- int: Update Ci env ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.7.1 (Wed Feb 15 2023)
 
 #### 🐛 Bug Fix
