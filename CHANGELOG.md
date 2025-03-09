@@ -1,3 +1,15 @@
+# 0.9.0 (Sun Mar 09 2025)
+
+#### 🚀 Enhancement
+
+- feat: Add option to not denoise with tedana (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.8.0 (Fri Feb 21 2025)
 
 #### 🚀 Enhancement
