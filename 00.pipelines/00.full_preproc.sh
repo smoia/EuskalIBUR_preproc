@@ -7,7 +7,9 @@ displayhelp() {
 echo "Required:"
 echo "sub ses prjname wdr"
 echo "Optional:"
-echo "anatsfx asegsfx voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug"
+echo "TEs tasks anat1sfx anat2sfx fs_json std mmres skip_normalisation voldiscard sbref mask "
+echo "fwhm slicetimeinterp despike skip_meicaden scriptdir tmp overwrite skip_prep skip_anat "
+echo "skip_sbref only_echoes only_optcom optcom_and_2e skip_greyplots debug"
 exit ${1:-0}
 }
 
@@ -35,6 +37,7 @@ normalise=yes
 voldiscard=10
 slicetimeinterp=none
 despike=no
+den_meica=yes
 sbref=default
 mask=default
 preproc_echoes=yes
@@ -73,6 +76,7 @@ do
 		-fwhm)					fwhm="$2";shift;;
 		-slicetimeinterp)		slicetimeinterp="$2";shift;;
 		-despike)				despike=yes;;
+		-skip_meicaden)			den_meica=no;;
 		-scriptdir)				scriptdir=$2;shift;;
 		-tmp)					tmp=$2;shift;;
 		-overwrite)				overwrite=yes;;
@@ -96,7 +100,7 @@ done
 checkreqvar sub ses wdr prjname
 scriptdir=${scriptdir%/}
 checkoptvar TEs tasks anat1sfx anat2sfx fs_json std mmres normalise voldiscard sbref \
-			mask fwhm slicetimeinterp despike scriptdir tmp overwrite run_prep \
+			mask fwhm slicetimeinterp despike den_meica scriptdir tmp overwrite run_prep \
 			run_anat run_sbref preproc_optcom preproc_echoes greyplot debug
 
 [[ ${debug} == "yes" ]] && set -x
@@ -324,7 +328,7 @@ then
 		[[ ${despike} == "yes" ]] && runfuncpreproc="${runfuncpreproc} -despike"
 		if [[ ${task} != "breathhold" ]]
 		then
-			runfuncpreproc="${runfuncpreproc} -den_meica"
+			[[ ${den_meica} == "yes" ]] && runfuncpreproc="${runfuncpreproc} -den_meica"
 			if [[ ${task} == *"rest"* ]]
 			then
 				runfuncpreproc="${runfuncpreproc} -applynuisance"
