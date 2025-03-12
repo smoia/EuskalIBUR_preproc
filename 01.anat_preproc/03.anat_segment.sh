@@ -68,7 +68,7 @@ echo "Segmenting ${anat}"
 Atropos -d 3 -a ${anat_in}.nii.gz \
 -o ${anat}_seg.nii.gz \
 -x ${anat}_brain_mask.nii.gz -i kmeans[3] \
---use-partial-volume-likelihoods \
+--use-partial-volume-likelihoods 1x2x3 \
 -s 1x2 -s 2x3 \
 -v 1
 
