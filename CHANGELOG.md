@@ -1,3 +1,15 @@
+# 0.9.1 (Wed Mar 12 2025)
+
+#### 🐛 Bug Fix
+
+- fix: Fix atropos (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.9.0 (Sun Mar 09 2025)
 
 #### 🚀 Enhancement
