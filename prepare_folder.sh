@@ -7,7 +7,7 @@ displayhelp() {
 echo "Required:"
 echo "sub ses wdr std prjname"
 echo "Optional:"
-echo "overwrite stdpath tmp"
+echo "overwrite stdpath tmp tasks"
 exit ${1:-0}
 }
 
@@ -23,6 +23,7 @@ overwrite=no
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 stdpath=${scriptdir}/90.template
 mmres=no
+tasks="motor simon pinel breathhold rest_run-01 rest_run-02 rest_run-03 rest_run-04"  #none
 
 ### print input
 printline=$( basename -- $0 )
@@ -42,6 +43,7 @@ do
 		-stdpath)	stdpath=$2;shift;;
 		-mmres)		mmres=$2;shift;;
 		-tmp)		tmp=$2;shift;;
+		-tasks)		tasks=$2;shift;;
 
 		-h)			displayhelp;;
 		-v)			version;exit 0;;
@@ -59,7 +61,7 @@ tmp=${tmp}/tmp_${prjname}_${sub}_${ses}
 
 # Check input
 checkreqvar sub ses wdr std prjname
-checkoptvar overwrite stdpath mmres tmp
+checkoptvar overwrite stdpath mmres tmp tasks
 
 ### Cath errors and exit on them
 set -e
@@ -107,7 +109,7 @@ if_missing_do copy ${stdpath}/${std}.nii.gz ${sesfld}/reg/${std}.nii.gz
 															${sesfld}/reg/${std}_resamp_${mmres}mm.nii.gz
 
 [[ ${ses} == "01" ]] && imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz ${tmp}/.
-imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*.nii.gz ${tmp}/.
+for t in ${tasks}; do imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*${t}*.nii.gz ${tmp}/.; done
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz ${tmp}/.
 
 cd ${cwd}
