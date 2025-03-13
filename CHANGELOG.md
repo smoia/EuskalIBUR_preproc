@@ -1,3 +1,15 @@
+# 0.10.0 (Thu Mar 13 2025)
+
+#### 🚀 Enhancement
+
+- feat: when preparing folders, copy only the tasks that are meant to be used. (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.9.1 (Wed Mar 12 2025)
 
 #### 🐛 Bug Fix
