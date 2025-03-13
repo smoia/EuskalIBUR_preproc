@@ -1,3 +1,15 @@
+# 0.10.1 (Thu Mar 13 2025)
+
+#### 🐛 Bug Fix
+
+- fix: fix tasks passage (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.10.0 (Thu Mar 13 2025)
 
 #### 🚀 Enhancement
