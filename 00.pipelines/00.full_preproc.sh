@@ -165,7 +165,7 @@ then
 	runprepfld="${scriptdir}/../prepare_folder.sh -sub ${sub} -ses ${ses}"
 	runprepfld="${runprepfld} -wdr ${wdr} -std ${std} -mmres ${mmres}"
 	runprepfld="${runprepfld} -tmp ${tmp} -prjname ${prjname}"
-	runprepfld="${runprepfld} -tasks ${tasks}"
+	runprepfld="${runprepfld} -tasks \"${tasks}\""
 	if [[ "${overwrite}" == "yes" ]]
 	then
 		runprepfld="${runprepfld} -overwrite"
