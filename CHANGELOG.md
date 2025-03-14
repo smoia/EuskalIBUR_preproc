@@ -1,3 +1,19 @@
+# 0.11.0 (Fri Mar 14 2025)
+
+#### 🚀 Enhancement
+
+- feat: also update version (s.moia@bcbl.eu)
+
+#### ⚠️ Pushed to `master`
+
+- enh: Better way to deal with tedana's peculiarity: containerize better. (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.10.2 (Fri Mar 14 2025)
 
 #### 🐛 Bug Fix
