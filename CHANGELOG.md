@@ -1,3 +1,15 @@
+# 0.11.1 (Fri Mar 14 2025)
+
+#### 🐛 Bug Fix
+
+- fix: Fix ants version (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.11.0 (Fri Mar 14 2025)
 
 #### 🚀 Enhancement
