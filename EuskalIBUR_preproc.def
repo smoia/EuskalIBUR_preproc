@@ -5,12 +5,12 @@ From: ubuntu:{{ UBUNTU_VER}}
 UBUNTU_VER=22.04
 R_VER=4.4.3
 AFNI_VER=25.0.07
-ANTS_VER=2.4.4
+ANTS_VER=2.5.4
 C3D_VER=1.0.0
 FSL_VER=6.0.7.6
 P2C_VER=0.18.6
 PK_VER=0.5.2
-EUSKPREPROC_VER=0.11.0
+EUSKPREPROC_VER=0.11.1
 
 %environment
 # export templateloc=/usr/share/afni/atlases
