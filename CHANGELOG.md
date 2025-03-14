@@ -1,3 +1,15 @@
+# 0.10.2 (Fri Mar 14 2025)
+
+#### 🐛 Bug Fix
+
+- fix: Be able to run tedana in a very controlled environment (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.10.1 (Thu Mar 13 2025)
 
 #### 🐛 Bug Fix
