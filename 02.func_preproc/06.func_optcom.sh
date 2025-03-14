@@ -80,9 +80,7 @@ if [[ ! -e ${tmp}/${func_optcom} ]]
 then
 	echo "Running t2smap"
 	cd ${tmp} || exit
-	source /opt/tedanaenv/bin/activate
 	t2smap -d ${tmp}/${func}.nii.gz -e ${TEs}
-	deactivate
 
 	echo "Housekeeping"
 	fslmaths TED.${func}/ts_OC.nii.gz ${tmp}/${func_optcom} -odt float

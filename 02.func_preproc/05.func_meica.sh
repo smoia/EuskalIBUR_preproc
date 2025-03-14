@@ -77,8 +77,6 @@ fi
 
 replace_and mkdir ${tmp}/${func}_meica
 
-# Activate tedana environment for hte next two steps
-source /opt/tedanaenv/bin/activate
 echo "Running tedana"
 tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica
 
@@ -89,7 +87,6 @@ cd ${tmp}/${func}_meica
 echo "Extracting good and bad copmonents"
 scriptpath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 python3 ${scriptpath}/05b.process_tedana_output.py ${tmp}/${func}_meica
-deactivate
 
 echo "Orthogonalising good and bad components in ${func}"
 nacc=$( cat accepted_list.1D )

@@ -1,0 +1,278 @@
+Bootstrap: docker
+From: ubuntu:{{ UBUNTU_VER}}
+
+%arguments
+UBUNTU_VER=22.04
+R_VER=4.4.3
+AFNI_VER=25.0.07
+ANTS_VER=2.4.4
+C3D_VER=1.0.0
+FSL_VER=6.0.7.6
+P2C_VER=0.18.6
+PK_VER=0.5.2
+EUSKPREPROC_VER=0.10.1
+
+%environment
+# export templateloc=/usr/share/afni/atlases
+export AFNIPATH="/opt/afni-AFNI_{{ AFNI_VER }}"
+export AFNI_PLUGINPATH="$AFNIPATH"
+export templateloc=/usr/share/afni/atlases
+export AFNI_AUTOGZIP=YES
+export AFNI_COMPRESSOR=GZIP
+export ANTSPATH="/opt/ants-{{ ANTS_VER }}/bin"
+export ANTSSCRIPTS="/opt/ants-{{ ANTS_VER }}/Scripts"
+export C3DPATH="/opt/convert3d-{{ C3D_VER }}"
+export FSLDIR="/opt/fsl-{{ FSL_VER }}"
+source ${FSLDIR}/etc/fslconf/fsl.sh
+export FSLOUTPUTTYPE="NIFTI_GZ"
+export FSLMULTIFILEQUIT="TRUE"
+export FSLTCLSH="$FSLDIR/bin/fsltclsh"
+export FSLWISH="$FSLDIR/bin/fslwish"
+export FSLLOCKDIR=""
+export FSLMACHINELIST=""
+export FSLREMOTECALL=""
+export FSLGECUDAQ="cuda.q"
+export DEBIAN_FRONTEND=noninteractive
+export TZ=Europe/Brussels
+export R_LIBS="/opt/R/{{ R_VER }}/bin/R"
+export LD_LIBRARY_PATH="/opt/ants-{{ ANTS_VER }}/lib:$LD_LIBRARY_PATH"
+export PREPROCPATH="/opt/preprocessing"
+export PATH="$AFNIPATH:$ANTSPATH:$ANTSSCRIPTS:$C3DPATH/bin:$FSLDIR/bin:$PREPROCPATH:$PREPROCPATH/00.pipelines:$PATH"
+
+%post
+
+# Set install variables, create tmp folder
+export TMPDIR="/tmp/general_preproc_build_$( date -u +"%F_%H-%M-%S" )"
+[[ -d ${TMPDIR} ]] && rm -rf ${TMPDIR}
+mkdir -p ${TMPDIR}
+export DEBIAN_FRONTEND=noninteractive
+export TZ=Europe/Brussels
+apt update -qq
+apt install -y -q --no-install-recommends ca-certificates dirmngr gnupg lsb-release
+
+# Prepare repos and install dependencies
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C9A7585B49D51698710F3A115E25F516B04C661B
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6E12762B81063D17BDDD3142F142A4D99F16EB04
+echo "deb https://ppa.launchpadcontent.net/marutter/rrutter4.0/ubuntu $(lsb_release -cs) main" | tee -a /etc/apt/sources.list
+echo "deb-src https://ppa.launchpadcontent.net/marutter/rrutter4.0/ubuntu $(lsb_release -cs) main" | tee -a /etc/apt/sources.list
+echo "deb https://ppa.launchpadcontent.net/c2d4u.team/c2d4u4.0+/ubuntu $(lsb_release -cs) main" | tee -a /etc/apt/sources.list
+echo "deb-src https://ppa.launchpadcontent.net/c2d4u.team/c2d4u4.0+/ubuntu $(lsb_release -cs) main" | tee -a /etc/apt/sources.list
+apt update -qq
+apt install -y -q --no-install-recommends \
+    bc \
+    build-essential \
+    bzip2 \
+    cmake \
+    csvtool \
+    curl \
+    dc \
+    file \
+    freeglut3-dev \
+    g++ \
+    gcc \
+    git \
+    less \
+    libcurl4-openssl-dev \
+    libeigen3-dev \
+    libexpat1-dev \
+    libf2c2-dev \
+    libfftw3-3 \
+    libfftw3-dev \
+    libgdal-dev \
+    libgfortran-11-dev \
+    libglew-dev \
+    libgl1-mesa-dev \
+    libgl1-mesa-dri \
+    libgl1-mesa-glx \
+    libglib2.0-dev \
+    libglu1-mesa-dev \
+    libglw1-mesa \
+    libgomp1 \
+    libgsl-dev \
+    libgts-dev \
+    libjpeg8-dev \
+    liblapack3 \
+    libopenblas-dev \
+    libmotif-dev \
+    libnetpbm10-dev \
+    libnode-dev \
+    libpng16-16 \
+    libpng-dev \
+    libquadmath0 \
+    libtiff5 \
+    libtiff5-dev \
+    libudunits2-dev \
+    libxext-dev \
+    libxi-dev \
+    libxm4 \
+    libxmhtml-dev \
+    libxml2-dev \
+    libxmu-dev \
+    libxmu-headers \
+    libxpm-dev \
+    libxt-dev \
+    m4 \
+    make \
+    mesa-common-dev \
+    nano \
+    rsync \
+    tcsh \
+    python3-distutils \
+    python3-pip \
+    python3-rpy2 \
+    python-is-python3 \
+    qhull-bin \
+    xvfb \
+    zlib1g-dev
+    # libgfortran4 \
+
+# Install Imagemagick
+apt install -y -q imagemagick
+
+# Install R
+mkdir -p ${TMPDIR}/R
+cd ${TMPDIR}/R || exit 1
+curl -O https://cdn.rstudio.com/r/ubuntu-2204/pkgs/r-{{ R_VER }}_1_amd64.deb
+apt install -y -q ./r-{{ R_VER }}_1_amd64.deb
+ln -s /opt/R/{{ R_VER }}/bin/R /usr/local/bin/R
+ln -s /opt/R/{{ R_VER }}/bin/Rscript /usr/local/bin/Rscript
+cd ${TMPDIR} || exit 1
+rm -rf ${TMPDIR}/R
+
+# Install AFNI
+mkdir -p ${TMPDIR}/afni
+cd ${TMPDIR}/afni || exit 1
+ln -s /usr/lib/x86_64-linux-gnu/libgsl.so.27 /usr/lib/x86_64-linux-gnu/libgsl.so.19
+ln -s /usr/lib/x86_64-linux-gnu/libXp.so.6 /usr/lib/x86_64-linux-gnu/libXp.so
+git clone -b AFNI_{{ AFNI_VER }} --depth=1 https://github.com/afni/afni.git ${TMPDIR}/afni/source
+cd source/src || exit 1
+cp other_builds/Makefile.linux_ubuntu_16_64_glw_local_shared Makefile
+make itall
+mv linux_ubuntu_16_64_glw_local_shared /opt/afni-AFNI_{{ AFNI_VER }}
+export PATH="/opt/afni-AFNI_{{ AFNI_VER }}:$PATH"
+export R_LIBS="/opt/R/{{ R_VER }}/bin/R"
+rPkgsInstall -pkgs ALL
+cd ${TMPDIR} || exit 1
+rm -rf ${TMPDIR}/afni
+
+# Install ANTs
+mkdir -p ${TMPDIR}/ants/build
+git clone -b v{{ ANTS_VER }} --depth=1 https://github.com/ANTsX/ANTs.git ${TMPDIR}/ants/source
+cd ${TMPDIR}/ants/build || exit 1
+cmake -DCMAKE_INSTALL_PREFIX=/opt/ants-{{ ANTS_VER }} -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF ${TMPDIR}/ants/source
+make -j 10
+mkdir -p /opt/ants-{{ ANTS_VER }}
+cd ANTS-build || exit 1
+make install
+mv ../../source/Scripts/ /opt/ants-{{ ANTS_VER }}
+cd ${TMPDIR} || exit 1
+rm -rf ${TMPDIR}/ants
+
+# Install C3D
+echo "Downloading Convert3D ..."
+mkdir -p /opt/convert3d-{{ C3D_VER }}
+curl -fsSL https://sourceforge.net/projects/c3d/files/c3d/{{ C3D_VER }}/c3d-{{ C3D_VER }}-Linux-x86_64.tar.gz/download \
+| tar -xz -C /opt/convert3d-{{ C3D_VER }} --strip-components 1
+
+# Install FSL
+mkdir -p ${TMPDIR}/fsl
+cd ${TMPDIR}/fsl || exit 1
+curl -fL https://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py --output ./fslinstaller.py
+chmod +x fslinstaller.py
+python3 fslinstaller.py -d /opt/fsl-{{ FSL_VER }} -V {{ FSL_VER }}
+# echo "Installing FSL conda environment ..."
+# bash /opt/fsl-{{ FSL_VER }}/etc/fslconf/fslpython_install.sh -f /opt/fsl-{{ FSL_VER }}
+cd ${TMPDIR} || exit 1
+rm -rf ${TMPDIR}/fsl
+
+# Clone EuskalIBUR preprocessing.
+git clone -b {{ EUSKPREPROC_VER }} --depth=1 https://github.com/smoia/EuskalIBUR_preproc.git /opt/preprocessing
+
+# Install PYTHON things.
+pip3 install pip==22.3.1 setuptools==65.5.1 wheel==0.38.4
+
+# Install wxPython in a particular way.
+pip3 install --no-cache -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxpython==4.2.2
+
+# Install datalad, nilearn, peakdet, phys2cvr.
+pip3 install \
+    annexremote==1.6.0 \
+    boto==2.49.0 \
+    certifi==2022.12.7 \
+    cffi==1.15.1 \
+    chardet==4.0.0 \
+    charset-normalizer==2.1.1 \
+    citeproc-py==0.6.0 \
+    contourpy==1.0.6 \
+    cryptography==38.0.4 \
+    cycler==0.11.0 \
+    datalad==0.17.10 \
+    dill==0.3.6 \
+    distro==1.8.0 \
+    duecredit==0.9.1 \
+    fasteners==0.18 \
+    fonttools==4.38.0 \
+    fsleyes==1.5.0 \
+    fsleyes-props==1.8.2 \
+    fsleyes-widgets==0.12.3 \
+    fslpy==3.10.0 \
+    h5py==3.7.0 \
+    humanize==4.4.0 \
+    idna==3.4 \
+    importlib-metadata==5.1.0 \
+    iso8601==1.1.0 \
+    jaraco.classes==3.2.3 \
+    jeepney==0.8.0 \
+    Jinja2==3.1.2 \
+    joblib==1.2.0 \
+    keyring==23.11.0 \
+    keyrings.alt==4.2.0 \
+    kiwisolver==1.4.4 \
+    lxml==4.9.2 \
+    MarkupSafe==2.1.1 \
+    matplotlib==3.6.2 \
+    more-itertools==9.0.0 \
+    msgpack==1.0.4 \
+    nibabel==4.0.2 \
+    nilearn==0.10.0 \
+    numpy==1.23.5 \
+    packaging==22.0 \
+    pandas==1.5.2 \
+    patool==1.12 \
+    peakdet==0.2.0rc1 \
+    phys2cvr==0.16.0 \
+    Pillow==9.3.0 \
+    platformdirs==2.6.0 \
+    pycparser==2.21 \
+    PyOpenGL==3.1.6 \
+    pyparsing==2.4.7 \
+    python-dateutil==2.8.2 \
+    python-gitlab==3.12.0 \
+    pytz==2022.6 \
+    requests==2.28.1 \
+    requests-toolbelt==0.10.1 \
+    scikit-learn==1.2.0 \
+    scipy==1.9.3 \
+    SecretStorage==3.3.3 \
+    simplejson==3.18.0 \
+    six==1.16.0 \
+    threadpoolctl==3.1.0 \
+    tqdm==4.64.1 \
+    urllib3==1.26.13 \
+    Whoosh==2.7.4 \
+    zipp==3.11.0
+
+# Be sure to install peakdet & phys2cvr
+pip3 install peakdet=={{ PK_VER }} phys2cvr=={{ P2C_VER }}
+
+# Clone tedana, then remove tag due to setuptool semver bs
+git clone -b EuskalIBUR --depth=1 https://github.com/smoia/tedana.git /opt/tedana
+cd /opt/tedana || exit 1
+git tag -d EuskalIBUR
+
+pip3 install --no-deps /opt/tedana
+
+# Final removal of lists and cleanup
+cd /tmp || exit 1
+rm -rf ${TMPDIR}
+rm -rf /var/lib/apt/lists/*
