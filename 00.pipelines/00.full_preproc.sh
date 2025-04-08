@@ -4,12 +4,9 @@
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
-echo "Required:"
-echo "sub ses prjname wdr"
-echo "Optional:"
-echo "TEs tasks anat1sfx anat2sfx fs_json std mmres skip_normalisation voldiscard sbref mask "
-echo "fwhm slicetimeinterp despike skip_meicaden scriptdir tmp overwrite skip_prep skip_anat "
-echo "skip_sbref only_echoes only_optcom optcom_and_2e skip_greyplots debug"
+sed -n '58,93p' "$0"
+echo "Optional presets:"
+sed -n '21,48p' "$0"
 exit ${1:-0}
 }
 
@@ -38,6 +35,7 @@ voldiscard=10
 slicetimeinterp=none
 despike=no
 den_meica=yes
+applynuisance=yes
 sbref=default
 mask=default
 preproc_echoes=yes
@@ -77,6 +75,7 @@ do
 		-slicetimeinterp)		slicetimeinterp="$2";shift;;
 		-despike)				despike=yes;;
 		-skip_meicaden)			den_meica=no;;
+		-skip_applynuisance)	applynuisance=no;;
 		-scriptdir)				scriptdir=$2;shift;;
 		-tmp)					tmp=$2;shift;;
 		-overwrite)				overwrite=yes;;
@@ -330,10 +329,7 @@ then
 		if [[ ${task} != "breathhold" ]]
 		then
 			[[ ${den_meica} == "yes" ]] && runfuncpreproc="${runfuncpreproc} -den_meica"
-			if [[ ${task} == *"rest"* ]]
-			then
-				runfuncpreproc="${runfuncpreproc} -applynuisance"
-			fi
+			[[ ${task} == *"rest"* && ${applynuisance} == "yes" ]] && runfuncpreproc="${runfuncpreproc} -applynuisance"
 		fi
 
 		echo "# Generating the command:"
