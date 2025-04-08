@@ -1,3 +1,15 @@
+# 0.12.1 (Tue Apr 08 2025)
+
+#### 🐛 Bug Fix
+
+- fix: Update preproc version ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.12.0 (Tue Apr 08 2025)
 
 #### 🚀 Enhancement
