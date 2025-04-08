@@ -1,3 +1,15 @@
+# 0.12.0 (Tue Apr 08 2025)
+
+#### 🚀 Enhancement
+
+- feat: Add applynuisance skip flag and update help ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.11.1 (Fri Mar 14 2025)
 
 #### 🐛 Bug Fix
