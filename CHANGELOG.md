@@ -1,3 +1,19 @@
+# 0.13.0 (Sun Apr 13 2025)
+
+#### 🚀 Enhancement
+
+- feat: Better handle versioning ([@smoia](https://github.com/smoia))
+
+#### 🐛 Bug Fix
+
+- fix: fix json check in sbref call ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.12.1 (Tue Apr 08 2025)
 
 #### 🐛 Bug Fix
