@@ -1,3 +1,15 @@
+# 0.13.1 (Sun Apr 13 2025)
+
+#### 🐛 Bug Fix
+
+- fix: fix preparation for sbref ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.13.0 (Sun Apr 13 2025)
 
 #### 🚀 Enhancement
