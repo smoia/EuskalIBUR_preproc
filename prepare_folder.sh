@@ -110,6 +110,7 @@ if_missing_do copy ${stdpath}/${std}.nii.gz ${sesfld}/reg/${std}.nii.gz
 
 [[ ${ses} == "01" ]] && imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz ${tmp}/.
 for t in ${tasks}; do imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*${t}*.nii.gz ${tmp}/.; done
+imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*breathhold*sbref.nii.gz ${tmp}/.
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz ${tmp}/.
 
 cd ${cwd}
