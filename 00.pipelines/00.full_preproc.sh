@@ -4,6 +4,7 @@
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 displayhelp() {
+version
 sed -n '58,93p' "$0"
 echo "Optional presets:"
 sed -n '21,48p' "$0"
@@ -136,6 +137,7 @@ exec 3>&1 4>&2
 
 exec 1>${logfile} 2>&1
 
+version
 date
 echo ""
 echo ${printcall}

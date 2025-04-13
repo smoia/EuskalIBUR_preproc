@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 version() {
-	echo "Version 0.0.0"
+	tag=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; git describe )
+	echo "EuskalIBUR_preproc version ${tag}"
+	echo ""
 }
 
 # Check input
@@ -56,7 +58,7 @@ case $1 in
 				copy ) echo "copying $2";		cp $2 $3 ;;
 				move ) echo "moving $2";		mv $2 $3 ;;
 				mask ) echo "binarising $2";	fslmaths $2 -bin $3 ;;
-				* ) echo "and you shouldn't see this"; exit ;;
+				* ) echo "and you shouldn't see this"; exit 2;;
 			esac
 		fi
 		;;
@@ -67,7 +69,7 @@ replace_and() {
 case $1 in
 	mkdir) if [ -d $2 ]; then echo "$2 exists already, removing first"; rm -rf $2; fi; mkdir -p "${@:2}" ;;
 	touch) if [ -d $2 ]; then echo "$2 exists already, removing first"; rm -rf $2; fi; touch $2 ;;
-	* ) echo "This is wrong"; exit ;;
+	* ) echo "This is wrong"; exit 2;;
 esac
 }
 
