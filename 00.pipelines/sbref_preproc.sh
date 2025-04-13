@@ -63,8 +63,8 @@ anat=${anat%.nii*}
 
 #Derived variables
 
-if ${fs_json} != "none"; then pepolarsfx=$(parse_filename_from_json pepolar ${fs_json}); else pepolarsfx=acq-breathhold_dir-PA_epi; fi
-if ${fs_json} != "none"; then sbrefsfx=$(parse_filename_from_json sbref ${fs_json}); else sbrefsfx=task-breathhold_rec-magnitude_echo-1_sbref; fi
+if [[ ${fs_json} != "none" ]]; then pepolarsfx=$(parse_filename_from_json pepolar ${fs_json}); else pepolarsfx=acq-breathhold_dir-PA_epi; fi
+if [[ ${fs_json} != "none" ]]; then sbrefsfx=$(parse_filename_from_json sbref ${fs_json}); else sbrefsfx=task-breathhold_rec-magnitude_echo-1_sbref; fi
 
 fileprx=sub-${sub}_ses-${ses}
 [[ ${tmp} != "." ]] && fileprx=${tmp}/${fileprx}
