@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 version() {
-	tag=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; git describe )
+	tag=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; git describe --tags --always)
 	echo "EuskalIBUR_preproc version ${tag}"
 	echo ""
 }
