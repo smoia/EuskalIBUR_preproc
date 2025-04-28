@@ -106,8 +106,8 @@ done
 
 #Derived variables
 
-if ${fs_json} != "none"; then boldsfx=$(parse_filename_from_json ${task} ${fs_json}); else boldsfx=echo-${e}_bold; fi
-if ${fs_json} != "none"; then fmatsfx=$(parse_filename_from_json ${task}fmat ${fs_json}); else fmatsfx=echo-1_bold; fi
+if [[ ${fs_json} != "none" ]]; then boldsfx=$(parse_filename_from_json ${task} ${fs_json}); else boldsfx=echo-${e}_bold; fi
+if [[ ${fs_json} != "none" ]]; then fmatsfx=$(parse_filename_from_json ${task}fmat ${fs_json}); else fmatsfx=echo-1_bold; fi
 
 aTEs=( ${TEs} )
 nTE=${#aTEs[@]}
@@ -121,6 +121,12 @@ set -e
 ######################################
 #########    Task preproc    #########
 ######################################
+
+echo ""
+echo "Make sure system python is used by prepending /usr/bin to PATH"
+[[ "${PATH%%:*}" != "/usr/bin" ]] && export PATH=/usr/bin:$PATH
+echo "PATH is set to $PATH"
+echo ""
 
 # Find right filenames
 fileechosfx=$( basename ${func_in#*_echo-*_} )

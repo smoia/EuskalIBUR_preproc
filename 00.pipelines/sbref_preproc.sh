@@ -79,6 +79,12 @@ set -e
 #########    SBRef preproc   #########
 ######################################
 
+echo ""
+echo "Make sure system python is used by prepending /usr/bin to PATH"
+[[ "${PATH%%:*}" != "/usr/bin" ]] && export PATH=/usr/bin:$PATH
+echo "PATH is set to $PATH"
+echo ""
+
 filedirsfx=$( basename ${func_in#*_dir-*_} )
 filedirprx=${func_in%_dir-*}
 fordir=$( basename ${func_in#*_dir-} )

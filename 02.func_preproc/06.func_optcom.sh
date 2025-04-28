@@ -54,6 +54,11 @@ set -e
 ######################################
 ######### Script starts here #########
 ######################################
+echo ""
+echo "Make sure system python is used by prepending /usr/bin to PATH"
+[[ "${PATH%%:*}" != "/usr/bin" ]] && export PATH=/usr/bin:$PATH
+echo "PATH is set to $PATH"
+echo ""
 
 cwd=$(pwd)
 
@@ -80,6 +85,12 @@ if [[ ! -e ${tmp}/${func_optcom} ]]
 then
 	echo "Running t2smap"
 	cd ${tmp} || exit
+	echo ""
+	echo "--------------"
+	echo "Running t2smap"
+	echo "--------------"
+	echo "Python: $( readlink -f python ) $( readlink -f python3 )"
+
 	t2smap -d ${tmp}/${func}.nii.gz -e ${TEs}
 
 	echo "Housekeeping"

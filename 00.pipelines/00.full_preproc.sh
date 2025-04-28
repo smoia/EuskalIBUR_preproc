@@ -145,6 +145,12 @@ echo ""
 checkreqvar sub ses prjname wdr
 checkoptvar anat1sfx anat2sfx fs_json voldiscard sbref mask slicetimeinterp despike fwhm scriptdir tmp debug
 
+echo ""
+echo "Make sure system python is used by prepending /usr/bin to PATH"
+[[ "${PATH%%:*}" != "/usr/bin" ]] && export PATH=/usr/bin:$PATH
+echo "PATH is set to $PATH"
+echo ""
+
 echo "************************************"
 
 echo ""

@@ -10,7 +10,7 @@ C3D_VER=1.0.0
 FSL_VER=6.0.7.6
 P2C_VER=0.18.6
 PK_VER=0.5.2
-EUSKPREPROC_VER=0.13.1
+EUSKPREPROC_VER=0.13.2
 
 %environment
 # export templateloc=/usr/share/afni/atlases
@@ -239,8 +239,6 @@ pip3 install \
     packaging==22.0 \
     pandas==1.5.2 \
     patool==1.12 \
-    peakdet==0.2.0rc1 \
-    phys2cvr==0.16.0 \
     Pillow==9.3.0 \
     platformdirs==2.6.0 \
     pycparser==2.21 \

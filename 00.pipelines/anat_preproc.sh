@@ -85,6 +85,12 @@ set -e
 #########    Anat preproc    #########
 ######################################
 
+echo ""
+echo "Make sure system python is used by prepending /usr/bin to PATH"
+[[ "${PATH%%:*}" != "/usr/bin" ]] && export PATH=/usr/bin:$PATH
+echo "PATH is set to $PATH"
+echo ""
+
 echo "************************************"
 echo "*** Anat correction ${anat1}"
 echo "************************************"

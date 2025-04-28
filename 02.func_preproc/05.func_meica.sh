@@ -54,6 +54,11 @@ set -e
 ######################################
 ######### Script starts here #########
 ######################################
+echo ""
+echo "Make sure system python is used by prepending /usr/bin to PATH"
+[[ "${PATH%%:*}" != "/usr/bin" ]] && export PATH=/usr/bin:$PATH
+echo "PATH is set to $PATH"
+echo ""
 
 cwd=$(pwd)
 
@@ -77,7 +82,12 @@ fi
 
 replace_and mkdir ${tmp}/${func}_meica
 
+echo ""
+echo "--------------"
 echo "Running tedana"
+echo "--------------"
+echo "Python: $( readlink -f python ) $( readlink -f python3 )"
+
 tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica
 
 cd ${tmp}/${func}_meica
@@ -86,6 +96,13 @@ cd ${tmp}/${func}_meica
 
 echo "Extracting good and bad copmonents"
 scriptpath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+echo ""
+echo "--------------"
+echo "Running post-tedana output processing"
+echo "--------------"
+echo "Python: $( readlink -f python ) $( readlink -f python3 )"
+
 python3 ${scriptpath}/05b.process_tedana_output.py ${tmp}/${func}_meica
 
 echo "Orthogonalising good and bad components in ${func}"
