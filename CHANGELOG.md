@@ -1,3 +1,20 @@
+# 0.13.2 (Mon Apr 28 2025)
+
+#### 🐛 Bug Fix
+
+- fix: update github environment ([@smoia](https://github.com/smoia))
+- fix: Ensure system python is used, and not something else. ([@smoia](https://github.com/smoia))
+
+#### ⚠️ Pushed to `master`
+
+- Fix version call if no tag is present ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.13.1 (Sun Apr 13 2025)
 
 #### 🐛 Bug Fix
