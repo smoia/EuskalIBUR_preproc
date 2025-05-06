@@ -83,10 +83,21 @@ fi
 replace_and mkdir ${tmp}/${func}_meica
 
 echo ""
+echo "---------------------------"
+echo "MAKE SURE PYTHON IS CORRECT"
+echo "---------------------------"
+alias python=/usr/bin/python
+alias python3=/usr/bin/python3
+alias
+echo "Python: $( which python ) $( which python3 )"
+echo ""
+
+
+echo ""
 echo "--------------"
 echo "Running tedana"
 echo "--------------"
-echo "Python: $( readlink -f python ) $( readlink -f python3 )"
+echo "Python: $( which python ) $( which python3 )"
 
 tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica
 
@@ -101,7 +112,10 @@ echo ""
 echo "--------------"
 echo "Running post-tedana output processing"
 echo "--------------"
-echo "Python: $( readlink -f python ) $( readlink -f python3 )"
+alias python=/usr/bin/python
+alias python3=/usr/bin/python3
+alias
+echo "Python: $( which python ) $( which python3 )"
 
 python3 ${scriptpath}/05b.process_tedana_output.py ${tmp}/${func}_meica
 

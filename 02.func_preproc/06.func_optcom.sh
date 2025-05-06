@@ -89,7 +89,10 @@ then
 	echo "--------------"
 	echo "Running t2smap"
 	echo "--------------"
-	echo "Python: $( readlink -f python ) $( readlink -f python3 )"
+	alias python=/usr/bin/python
+	alias python3=/usr/bin/python3
+	alias
+	echo "Python: $( which python ) $( which python3 )"
 
 	t2smap -d ${tmp}/${func}.nii.gz -e ${TEs}
 
