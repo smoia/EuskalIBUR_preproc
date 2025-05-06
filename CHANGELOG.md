@@ -1,3 +1,15 @@
+# 0.13.3 (Tue May 06 2025)
+
+#### 🐛 Bug Fix
+
+- fix: Python. (s.moia@bcbl.eu)
+
+#### Authors: 1
+
+- Stefano Moia (s.moia@bcbl.eu)
+
+---
+
 # 0.13.2 (Mon Apr 28 2025)
 
 #### 🐛 Bug Fix
