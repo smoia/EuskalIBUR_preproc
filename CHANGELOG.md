@@ -1,3 +1,15 @@
+# 0.14.2 (Sat Dec 06 2025)
+
+#### 🐛 Bug Fix
+
+- fix: fix container definition ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.14.1 (Sat Dec 06 2025)
 
 #### 🐛 Bug Fix
