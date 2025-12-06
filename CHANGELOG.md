@@ -1,3 +1,15 @@
+# 0.14.0 (Sat Dec 06 2025)
+
+#### 🚀 Enhancement
+
+- feat: BREAKING! Use SynthStrip for skullstripping through brainmask utility. ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.13.3 (Tue May 06 2025)
 
 #### 🐛 Bug Fix
