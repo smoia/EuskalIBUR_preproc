@@ -3,14 +3,6 @@
 # shellcheck source=../utils.sh
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
-displayhelp() {
-version
-sed -n '58,93p' "$0"
-echo "Optional presets:"
-sed -n '21,48p' "$0"
-exit ${1:-0}
-}
-
 # Check if there is input
 
 if [[ ( $# -eq 0 ) ]]
@@ -56,41 +48,41 @@ printcall="${printline} $*"
 while [ ! -z "$1" ]
 do
 	case "$1" in
-		-sub)		sub=$2;shift;;
-		-ses)		ses=$2;shift;;
-		-wdr)		wdr=$2;shift;;
-		-prjname)	prjname=$2;shift;;
+		-sub)		sub=$2;shift;;			# The subject to be analysed
+		-ses)		ses=$2;shift;;			# The session to be analysed
+		-wdr)		wdr=$2;shift;;			# Path to root folder of BIDS(-like) dataset 
+		-prjname)	prjname=$2;shift;;		# Desired name for derivative folder, it will be created in ${wdr}/derivatives
 
-		-TEs)					TEs="$2";shift;;
-		-tasks)					tasks="$2";shift;;
-		-anat1sfx)				anat1sfx=$2;shift;;
-		-anat2sfx)				anat2sfx=$2;shift;;
-		-fs_json)				fs_json=$2;shift;;
-		-std)					std=$2;shift;;
-		-mmres)					mmres=$2;shift;;
-		-skip_normalisation)	normalise=no;;
-		-voldiscard)			voldiscard=$2;shift;;
-		-sbref)					sbref=$2;shift;;
-		-mask)					mask="$2";shift;;
-		-fwhm)					fwhm="$2";shift;;
-		-slicetimeinterp)		slicetimeinterp="$2";shift;;
-		-despike)				despike=yes;;
-		-skip_meicaden)			den_meica=no;;
-		-skip_applynuisance)	applynuisance=no;;
-		-scriptdir)				scriptdir=$2;shift;;
-		-tmp)					tmp=$2;shift;;
-		-overwrite)				overwrite=yes;;
-		-skip_prep)				run_prep=no;;
-		-skip_anat)				run_anat=no;;
-		-skip_sbref)			run_sbref=no;;
-		-only_echoes)			preproc_optcom=no;;
-		-only_optcom)			preproc_echoes=no;;
-		-optcom_and_2e)			preproc_echoes=second; preproc_optcom=yes;;
-		-skip_greyplots)		greyplot=no;;
-		-debug)					debug=yes;;
+		-TEs)					TEs="$2";shift;;								# TEs of multi-echo files.
+		-tasks)					tasks="$2";shift;;								# Tasks to be analysed.
+		-anat1sfx)				anat1sfx=$2;shift;;								# The suffix of the main anatomical image, normally a T1w. It will be normalised to T1w MNI.
+		-anat2sfx)				anat2sfx=$2;shift;;								# The suffix of the secondary anatomical image, if existing, normally a T2w. It will be registered to functional space, and its mask will be used to mask anat1sfw.
+		-fs_json)				fs_json=$2;shift;;								# JSON file that describes dataset names.
+		-std)					std=$2;shift;;									# MNI to use.
+		-mmres)					mmres=$2;shift;;								# Resolution of MNI. It will be resampled to this resolution.
+		-skip_normalisation)	normalise=no;;									# Skip normalisation to MNI.
+		-voldiscard)			voldiscard=$2;shift;;							# Number of volumes to discard.
+		-sbref)					sbref=$2;shift;;								# Single Band Reference (SBRef) for functional images realignment (and PAPolar correction)
+		-mask)					mask="$2";shift;;								# Mask to use for (anatomical) brain extractions
+		-fwhm)					fwhm="$2";shift;;								# Is smoothing funcitonal data, the Full Width Half Maximum of the gaussian interpolator
+		-slicetimeinterp)		slicetimeinterp="$2";shift;;					# Slice Time Interpolation file.
+		-despike)				despike=yes;;									# Despike functional data.
+		-skip_meicaden)			den_meica=no;;									# Don't add MEICA denoising in functional data.
+		-skip_applynuisance)	applynuisance=no;;								# Don't run nuisance regression of functional data.
+		-scriptdir)				scriptdir=$2;shift;;							# Scripts directory.
+		-tmp)					tmp=$2;shift;;									# Temp folder, normally a scratch folder.
+		-overwrite)				overwrite=yes;;									# Overwrite previous results.
+		-skip_prep)				run_prep=no;;									# Don't prepare the output folders.
+		-skip_anat)				run_anat=no;;									# Don't run the anatomical preprocessing.
+		-skip_sbref)			run_sbref=no;;									# Don't run the SBRef preprocessing.
+		-only_echoes)			preproc_optcom=no;;								# Don't compute the optimally combined signals, only the echoes.
+		-only_optcom)			preproc_echoes=no;;								# Don't process echoes any further than tedana/t2*map
+		-optcom_and_2e)			preproc_echoes=second; preproc_optcom=yes;;		# Compute optimally combined signals and process second echo, but not the other echoes (further than tedana).
+		-skip_greyplots)		greyplot=no;;									# Don't compute GreyPlots. Using this option saves a lot of time and computing costs, but then QA/QC is more difficult.
+		-debug)					debug=yes;;										# Return all messages and don't delete tmp folder.
 
-		-h)			displayhelp;;
-		-v)			version;exit 0;;
+		-h)			displayhelp;;												# Display this help.
+		-v)			version;exit 0;;											# Show the version.
 		*)			echo "Wrong flag: $1";displayhelp 1;;
 	esac
 	shift
