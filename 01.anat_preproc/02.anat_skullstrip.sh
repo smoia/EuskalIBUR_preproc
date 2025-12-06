@@ -72,13 +72,11 @@ if [[ "${mask}" == "none" ]]
 then
 	# If no mask is specified, then creates it.
 	echo "Skull Stripping ${anat}"
-	3dSkullStrip -input ${anat_in}.nii.gz \
-				 -prefix ${anat}_brain.nii.gz \
-				 -orig_vol -overwrite
-	# Momentarily forcefully change header because SkullStrips plumbs the volume.
-	3dcalc -a ${anat_in}.nii.gz -b ${anat}_brain.nii.gz -expr "a*step(b)" \
-		   -prefix ${anat}_brain.nii.gz -overwrite
-	fslmaths ${anat}_brain -bin ${anat}_brain_mask
+
+	# This comes from utils.sh
+	skullstrip -nii ${anat_in} -method fsss -tmp ${adir}
+	mv ${anat_in}_brain.nii.gz ${anat}_brain.nii.gz
+	mv ${anat_in}_brain_mask.nii.gz ${anat}_brain_mask.nii.gz
 	mask=${anat}_brain_mask
 	echo ""
 else

@@ -10,7 +10,7 @@ C3D_VER=1.0.0
 FSL_VER=6.0.7.6
 P2C_VER=0.18.6
 PK_VER=0.5.2
-EUSKPREPROC_VER=0.13.2
+FS_VER=8.1.0
 
 %environment
 # export templateloc=/usr/share/afni/atlases
@@ -32,6 +32,8 @@ export FSLLOCKDIR=""
 export FSLMACHINELIST=""
 export FSLREMOTECALL=""
 export FSLGECUDAQ="cuda.q"
+# Not really FS, it's just SynthStrip
+export FREESURFER_HOME="/opt/synthstrip-{{ FS_VER }}"
 export DEBIAN_FRONTEND=noninteractive
 export TZ=Europe/Brussels
 export R_LIBS="/opt/R/{{ R_VER }}/bin/R"
@@ -50,6 +52,64 @@ export TZ=Europe/Brussels
 apt update -qq
 apt install -y -q --no-install-recommends ca-certificates dirmngr gnupg lsb-release
 
+# Install PYTHON things, as well as git and curl.
+apt update -qq
+apt install -y -q --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    python3.10 \
+    python3.10-dev \
+    python3-distutils \
+    python3-pip \
+    python3-rpy2 \
+    python-is-python3
+
+pip3 install pip==22.3.1 setuptools==65.5.1 wheel==0.38.4
+
+# Prepare Install for synthstrip
+pip3 install distlib==0.4.0 platformdirs==4.5.0 virtualenv==20.26.2
+
+# Install synthstrip
+mkdir -p ${TMPDIR}/synthstrip
+git clone -b v{{ FS_VER }} --depth=1 https://github.com/freesurfer/freesurfer.git ${TMPDIR}/synthstrip
+cd ${TMPDIR}/synthstrip/mri_synthstrip || exit 1
+mkdir -p /opt/synthstrip-{{ FS_VER }}/models
+mv mri_synthstrip /opt/synthstrip-{{ FS_VER }}/.
+cd /opt/synthstrip-{{ FS_VER }} || exit 1
+curl https://surfer.nmr.mgh.harvard.edu/docs/synthstrip/requirements/synthstrip.1.pt --output models/synthstrip.1.pt
+curl https://surfer.nmr.mgh.harvard.edu/docs/synthstrip/requirements/synthstrip.nocsf.1.pt --output models/synthstrip.nocsf.1.pt
+# curl https://surfer.nmr.mgh.harvard.edu/docs/synthstrip/requirements/synthstrip.infant.1.pt --output models/synthstrip.infant.1.pt
+
+virtualenv -p /usr/bin/python3.10 ssenv
+
+. ssenv/bin/activate
+
+pip3 install https://github.com/freesurfer/surfa/archive/ca4e26317d3556776268ede7de20752743bf49a2.zip
+pip3 install --index-url https://download.pytorch.org/whl/cpu torch==2.1.2
+pip3 install \
+    filelock==3.13.1 \
+    fsspec==2024.6.1 \
+    importlib_resources==6.5.2 \
+    Jinja2==3.1.3 \
+    MarkupSafe==2.1.5 \
+    mpmath==1.3.0 \
+    networkx==3.3 \
+    nibabel==5.3.2 \
+    numpy==1.26.4 \
+    packaging==25.0 \
+    pillow==11.3.0 \
+    scipy==1.15.3 \
+    sympy==1.13.3 \
+    triton==2.1.0 \
+    typing_extensions==4.15.0 \
+    xxhash==3.5.0
+
+deactivate
+
+cd ${TMPDIR} || exit 1
+rm -rf ${TMPDIR}/synthstrip
+
 # Prepare repos and install dependencies
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C9A7585B49D51698710F3A115E25F516B04C661B
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6E12762B81063D17BDDD3142F142A4D99F16EB04
@@ -60,17 +120,14 @@ echo "deb-src https://ppa.launchpadcontent.net/c2d4u.team/c2d4u4.0+/ubuntu $(lsb
 apt update -qq
 apt install -y -q --no-install-recommends \
     bc \
-    build-essential \
     bzip2 \
     cmake \
     csvtool \
-    curl \
     dc \
     file \
     freeglut3-dev \
     g++ \
     gcc \
-    git \
     less \
     libcurl4-openssl-dev \
     libeigen3-dev \
@@ -117,10 +174,6 @@ apt install -y -q --no-install-recommends \
     nano \
     rsync \
     tcsh \
-    python3-distutils \
-    python3-pip \
-    python3-rpy2 \
-    python-is-python3 \
     qhull-bin \
     xvfb \
     zlib1g-dev
@@ -187,9 +240,6 @@ rm -rf ${TMPDIR}/fsl
 
 # Clone EuskalIBUR preprocessing.
 git clone -b {{ EUSKPREPROC_VER }} --depth=1 https://github.com/smoia/EuskalIBUR_preproc.git /opt/preprocessing
-
-# Install PYTHON things.
-pip3 install pip==22.3.1 setuptools==65.5.1 wheel==0.38.4
 
 # Install wxPython in a particular way.
 pip3 install --no-cache -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxpython==4.2.2

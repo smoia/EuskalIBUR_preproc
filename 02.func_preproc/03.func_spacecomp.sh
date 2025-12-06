@@ -107,6 +107,7 @@ if [[ ! -e "${mref}_brain_mask" && "${mref}" != "none" ]]
 then
 	echo "BETting reference ${mref}"
 	bet ${mref} ${mref}_brain -R -f 0.5 -g 0 -n -m
+	skullstrip -nii ${mref} -method fsss -tmp ${tmp}
 fi
 
 # 01.4. Apply mask

@@ -1,32 +1,172 @@
 #!/usr/bin/env bash
 
+alias skullstrip="./brainmask.sh"
+
 version() {
+	local script_file=${1:-''}
 	tag=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; git describe --tags --always)
-	echo "EuskalIBUR_preproc version ${tag}"
+	echo "M3PI_preproc, $( basename ${script_file} ), version ${tag}"
 	echo ""
+}
+
+displayhelp() {
+	local script_file=$1
+	local exit_code=${2:-0}
+
+	if [[ -z ${script_file} ]]
+	then
+		echo "displayhelp requires the script filename as the first argument"
+		exit 3
+	fi
+
+	version ${script_file}
+
+	# Extract case block into required and optional
+	awk '
+		/case[ \t]*"\$1"/ { in_case=1; in_req=1; next }
+		in_case {
+			if ($0 ~ /^$/ && in_req) { in_req=0; next }  # switch to optional
+			if (/esac/) { in_case=0; next }              # end of case block
+
+			# Match only lines that look like a case flag
+			if ($0 ~ /^[ \t]*-/) {
+				flag = ""; code = ""; desc = ""
+
+				# Extract the flag (first token before ")")
+				if (match($0, /^[ \t]*-[^ \t)]*/)) {
+					flag = substr($0, RSTART, RLENGTH)
+				}
+
+				# Extract code (between ")" and ";;", ignoring comments)
+				if (match($0, /\)[ \t]*([^#]*);;/)) {
+					tmp = substr($0, RSTART+1, RLENGTH-3)  # skip ")" and ";;"
+					gsub(/^[ \t]+|[ \t]+$/, "", tmp)
+					code = tmp
+				}
+
+				# Extract comment (after "#", if any)
+				if (match($0, /#[ \t]*(.*)$/)) {
+					tmp = substr($0, RSTART+1)
+					gsub(/^[ \t]+|[ \t]+$/, "", tmp)
+					desc = tmp
+				}
+
+				# If no comment, try to use the variable being set as description
+				if (desc == "" && code != "") {
+					if (match(code, /^[A-Za-z_][A-Za-z0-9_]*/)) {
+						desc = "(sets " substr(code, RSTART, RLENGTH) ")"
+					}
+				}
+				if (desc == "") desc = "(no description)"
+
+				if (in_req) {
+					req_flags[++n_req] = flag
+					req_desc[n_req] = desc
+				} else {
+					opt_flags[++n_opt] = flag
+					opt_desc[n_opt] = desc
+				}
+				if (length(flag) > maxlen) maxlen = length(flag)
+			}
+		}
+		END {
+			print "Required arguments:"
+			for (i=1; i<=n_req; i++) {
+				printf "  %-*s  %s\n", maxlen, req_flags[i], req_desc[i]
+			}
+			if (n_opt > 0) {
+				print ""
+				print "Optional arguments:"
+				for (i=1; i<=n_opt; i++) {
+					printf "  %-*s  %s\n", maxlen, opt_flags[i], opt_desc[i]
+				}
+			}
+		}
+	' "${script_file}"
+
+
+	# Only show presets if optional flags exist
+	if awk '
+		/case[ \t]*"\$1"/ { in_case=1; in_req=1; next }
+		in_case {
+			if ($0 ~ /^$/ && in_req) { in_req=0; next }
+			if (/esac/) exit
+			if (!in_req) { found=1; exit }
+		}
+		END { exit !found }
+	' "${script_file}"
+	then
+		echo
+		echo "Default values of optional arguments:"
+		awk '
+			BEGIN { maxlen = 0 }
+			/^# Preparing the default values for variables/ { in_defaults=1; next }
+			in_defaults {
+				if (/^###/) exit
+				if ($0 ~ /^[[:space:]]*$/) next
+				split($0, parts, "=")
+				varname = parts[1]
+				gsub(/[ \t]+$/, "", varname)
+				defaults[++n] = $0
+				if (length(varname) > maxlen) maxlen = length(varname)
+			}
+			END {
+				for (i=1; i<=n; i++) {
+					split(defaults[i], parts, "=")
+					varname = parts[1]
+					gsub(/[ \t]+$/, "", varname)
+					value = substr(defaults[i], length(varname)+2)  # skip = and space
+					printf "  %-*s = %s\n", maxlen, varname, value
+				}
+			}
+		' "${script_file}"
+	fi
+
+	exit ${exit_code}
 }
 
 # Check input
 checkreqvar() {
-	reqvar=( "$@" )
+	local reqvar=("$@")
+	local vartype
 
-	for var in "${reqvar[@]}"
-	do
-		if [[ -z ${!var+x} ]]
-		then
+	for var in "${reqvar[@]}"; do
+		if [[ -z ${!var+x} ]]; then
 			echo "${var} is unset, exiting program" && exit 1
+		fi
+
+		vartype=$(declare -p ${var} 2>/dev/null)
+
+		if [[ ${vartype} =~ declare\ \-a\ ([A-Za-z_][A-Za-z0-9_]*)=([\'\"])?(.*)\2 ]]
+		then
+			echo "${var} is an indexed array ${BASH_REMATCH[3]}"
+		elif [[ ${vartype} =~ declare\ \-A\ ([A-Za-z_][A-Za-z0-9_]*)=([\'\"])?(.*)\2 ]]
+		then
+			echo "${var} is an associative array ${BASH_REMATCH[3]}"
 		else
 			echo "${var} is set to ${!var}"
 		fi
 	done
 }
 
+
 checkoptvar() {
-	optvar=( "$@" )
+	local optvar=("$@")
+	local vartype
 
 	for var in "${optvar[@]}"
 	do
-		echo "${var} is set to ${!var}"
+		vartype=$(declare -p ${var} 2>/dev/null)
+
+		if [[ ${vartype} =~ declare\ \-a\ ([A-Za-z_][A-Za-z0-9_]*)=([\'\"])?(.*)\2 ]]
+		then
+			echo "${var} is an indexed array ${BASH_REMATCH[3]}"
+		elif [[ ${vartype} =~ declare\ \-A\ ([A-Za-z_][A-Za-z0-9_]*)=([\'\"])?(.*)\2 ]]
+		then
+			echo "${var} is an associative array ${BASH_REMATCH[3]}"
+		else
+			echo "${var} is set to ${!var}"
+		fi
 	done
 }
 
@@ -96,3 +236,17 @@ parse_filename_from_json() {
 	fi
 }
 
+
+# Copyright 2025, Stefano Moia
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.

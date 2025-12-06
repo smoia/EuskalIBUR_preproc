@@ -68,7 +68,9 @@ sbref=$( basename ${sbref_in%_*} )
 
 ## 01. BET
 echo "BETting ${sbref}"
-bet ${sbref_in} ${sbref}_brain -R -f 0.5 -g 0 -n -m
+skullstrip -nii ${sbref_in} -method fsss -tmp ${fdir}
+mv ${sbref_in}_brain.nii.gz ${sbref}_brain.nii.gz
+mv ${sbref_in}_brain_mask.nii.gz ${sbref}_brain_mask.nii.gz
 
 ## 02. Anat Coreg
 if [[ "${anat}" != "none" ]]

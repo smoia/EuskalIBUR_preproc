@@ -87,7 +87,9 @@ if [[ "${mref}" == "none" ]]; then mref=${func}; mref_in=${func_in}; fi
 if [[ ! -e "${mref}_brain_mask.nii.gz" && ! -e "${mref}_mask.nii.gz" ]]
 then
 	echo "BETting reference ${mref}"
-	bet ${mref_in} ${mref}_brain -R -f 0.5 -g 0 -n -m
+	skullstrip -nii ${mref_in} -method fsss -tmp ${tmp}
+	mv ${mref_in}_brain.nii.gz ${mref}_brain.nii.gz
+	mv ${mref_in}_brain_mask.nii.gz ${mref}_brain_mask.nii.gz
 	mref=${mref}_brain
 fi
 

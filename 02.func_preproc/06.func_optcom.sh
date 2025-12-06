@@ -108,7 +108,7 @@ if [[ "${nTR}" -gt "1" ]]
 then
 	echo "Computing outlier fraction in ${func_optcom}"
 	fslmaths ${tmp}/${func_optcom} -Tmean ${tmp}/${func_optcom}_avg
-	bet ${tmp}/${func_optcom}_avg ${tmp}/${func_optcom}_brain -R -f 0.5 -g 0 -n -m
+	skullstrip -nii ${tmp}/${func_optcom}_avg -method fsss -tmp ${tmp}
 	3dToutcount -mask ${tmp}/${func_optcom}_brain_mask.nii.gz -fraction -polort 5 -legendre ${tmp}/${func_optcom}.nii.gz > ${func_optcom%_bet}_outcount.1D
 	imrm ${tmp}/${func_optcom}_avg ${tmp}/${func_optcom}_brain ${tmp}/${func_optcom}_brain_mask
 fi
