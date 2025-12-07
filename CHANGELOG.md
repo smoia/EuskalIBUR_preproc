@@ -1,3 +1,15 @@
+# 0.14.3 (Sun Dec 07 2025)
+
+#### 🐛 Bug Fix
+
+- fix: Fix displayhelp call ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.14.2 (Sat Dec 06 2025)
 
 #### 🐛 Bug Fix
