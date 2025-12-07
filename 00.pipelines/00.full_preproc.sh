@@ -5,10 +5,8 @@ source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 # Check if there is input
 
-if [[ ( $# -eq 0 ) ]]
-	then
-	displayhelp
-fi
+# Check if there is input
+[[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
 overwrite=no
