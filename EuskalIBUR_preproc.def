@@ -11,7 +11,6 @@ FSL_VER=6.0.7.6
 P2C_VER=0.18.6
 PK_VER=0.5.2
 FS_VER=8.1.0
-EUSKPREPROC_VER=0.14.3
 
 %environment
 # export templateloc=/usr/share/afni/atlases
@@ -239,8 +238,9 @@ python3 fslinstaller.py -d /opt/fsl-{{ FSL_VER }} -V {{ FSL_VER }}
 cd ${TMPDIR} || exit 1
 rm -rf ${TMPDIR}/fsl
 
-# Clone EuskalIBUR preprocessing.
-git clone -b {{ EUSKPREPROC_VER }} --depth=1 https://github.com/smoia/EuskalIBUR_preproc.git /opt/preprocessing
+# Clone latest EuskalIBUR preprocessing.
+euskpreprocver=$( git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags https://github.com/smoia/EuskalIBUR_preproc.git '*.*.*' | tail --lines=1 | cut --delimiter='/' --fields=3 )
+git clone -b ${euskpreprocver} --depth=1 https://github.com/smoia/EuskalIBUR_preproc.git /opt/preprocessing
 
 # Install wxPython in a particular way.
 pip3 install --no-cache -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxpython==4.2.2

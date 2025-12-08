@@ -86,7 +86,7 @@ if [[ "${nTR}" -gt "1" ]]
 then
 	echo "Computing outlier fraction in ${func}"
 	fslmaths ${funcsource} -Tmean ${tmp}/${func}_avg
-	skullstrip -nii ${tmp}/${func}_avg -method fsss -tmp ${tmp}
+	brain_extract -nii ${tmp}/${func}_avg -method fsss -tmp ${tmp}
 	3dToutcount -mask ${tmp}/${func}_brain_mask.nii.gz -fraction -polort 5 -legendre ${funcsource}.nii.gz > ${func}_outcount.1D
 fi
 

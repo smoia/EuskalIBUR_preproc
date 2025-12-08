@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-alias skullstrip="./brainmask.sh"
+SCRIPT_DIR=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )
+
+brain_extract () {
+	${SCRIPT_DIR}/brainmask.sh
+}
 
 version() {
 	local script_file=${1:-''}

@@ -68,7 +68,7 @@ sbref=$( basename ${sbref_in%_*} )
 
 ## 01. BET
 echo "BETting ${sbref}"
-skullstrip -nii ${sbref_in} -method fsss -tmp ${fdir}
+brain_extract -nii ${sbref_in} -method fsss -tmp ${fdir}
 mv ${sbref_in}_brain.nii.gz ${sbref}_brain.nii.gz
 mv ${sbref_in}_brain_mask.nii.gz ${sbref}_brain_mask.nii.gz
 
