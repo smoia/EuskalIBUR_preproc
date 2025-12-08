@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 brain_extract () {
-	${SCRIPT_DIR}/brainmask.sh
+	${SCRIPT_DIR}/brainmask.sh "$@"
 }
 
 version() {

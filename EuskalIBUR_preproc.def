@@ -39,7 +39,7 @@ export TZ=Europe/Brussels
 export R_LIBS="/opt/R/{{ R_VER }}/bin/R"
 export LD_LIBRARY_PATH="/opt/ants-{{ ANTS_VER }}/lib:$LD_LIBRARY_PATH"
 export PREPROCPATH="/opt/preprocessing"
-export PATH="$AFNIPATH:$ANTSPATH:$ANTSSCRIPTS:$C3DPATH/bin:$FSLDIR/bin:$PREPROCPATH:$PREPROCPATH/00.pipelines:$PATH"
+export PATH="$PATH:$AFNIPATH:$ANTSPATH:$ANTSSCRIPTS:$C3DPATH/bin:$FSLDIR/bin:$PREPROCPATH:$PREPROCPATH/00.pipelines:$FREESURFER_HOME"
 
 %post
 

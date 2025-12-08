@@ -106,7 +106,6 @@ fi
 if [[ ! -e "${mref}_brain_mask" && "${mref}" != "none" ]]
 then
 	echo "BETting reference ${mref}"
-	bet ${mref} ${mref}_brain -R -f 0.5 -g 0 -n -m
 	brain_extract -nii ${mref} -method fsss -tmp ${tmp}
 fi
 

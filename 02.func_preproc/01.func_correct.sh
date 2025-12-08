@@ -87,6 +87,8 @@ then
 	echo "Computing outlier fraction in ${func}"
 	fslmaths ${funcsource} -Tmean ${tmp}/${func}_avg
 	brain_extract -nii ${tmp}/${func}_avg -method fsss -tmp ${tmp}
+	mv ${tmp}/${func}_avg_brain.nii.gz ${tmp}/${func}_brain.nii.gz
+	mv ${tmp}/${func}_avg_brain_mask.nii.gz ${tmp}/${func}_brain_mask.nii.gz
 	3dToutcount -mask ${tmp}/${func}_brain_mask.nii.gz -fraction -polort 5 -legendre ${funcsource}.nii.gz > ${func}_outcount.1D
 fi
 
