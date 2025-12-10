@@ -74,7 +74,7 @@ then
 	echo "Skull Stripping ${anat}"
 
 	# This comes from utils.sh
-	brain_extract -nii ${anat_in} -method fsss -tmp ${adir}
+	brain_extract -nii ${anat_in} -method 3dss -tmp ${adir}
 	mv ${anat_in}_brain.nii.gz ${anat}_brain.nii.gz
 	mv ${anat_in}_brain_mask.nii.gz ${anat}_brain_mask.nii.gz
 	mask=${anat}_brain_mask
