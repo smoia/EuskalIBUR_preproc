@@ -1,3 +1,93 @@
+# 0.15.0 (Thu Dec 11 2025)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Stefano Moia ([@smoia](https://github.com/smoia)), for all your work!
+
+#### 🚀 Enhancement
+
+- feat: Revert to afni for anatomical skulstripping ([@smoia](https://github.com/smoia))
+- feat: Automatically clone latest repo version with container and hopefully fix brain extraction call ([@smoia](https://github.com/smoia))
+- feat: BREAKING! Use SynthStrip for skullstripping through brainmask utility. ([@smoia](https://github.com/smoia))
+- feat: Better handle versioning ([@smoia](https://github.com/smoia))
+- feat: Add applynuisance skip flag and update help ([@smoia](https://github.com/smoia))
+- feat: also update version ([@smoia](https://github.com/smoia))
+- feat: when preparing folders, copy only the tasks that are meant to be used. ([@smoia](https://github.com/smoia))
+- feat: Add option to not denoise with tedana ([@smoia](https://github.com/smoia))
+- feat: add a json parser for filenames in utils ([@smoia](https://github.com/smoia))
+- feat: Add tissue templates ([@smoia](https://github.com/smoia))
+- feat: Allow skipping greyplots, and allow a full preproc of only optcom or 2e ([@smoia](https://github.com/smoia))
+- feat: Improve full preproc ([@smoia](https://github.com/smoia))
+- feat: Improve tmp parallelisation ([@smoia](https://github.com/smoia))
+- feat: Exit on errors ([@smoia](https://github.com/smoia))
+- feat: Improve anat normalisation ([@smoia](https://github.com/smoia))
+- Allow running functional preproc on optcom or echoes only [#2](https://github.com/smoia/EuskalIBUR_preproc/pull/2) ([@smoia](https://github.com/smoia))
+- Pipelines [#1](https://github.com/smoia/EuskalIBUR_preproc/pull/1) ([@smoia](https://github.com/smoia))
+
+#### 💥 Breaking Change during development
+
+- Fix use of greyplots in full preproc pipeline [#5](https://github.com/smoia/EuskalIBUR_preproc/pull/5) ([@smoia](https://github.com/smoia))
+- Removing 3drefit and 3dresample calls after a chat with @oesteban [#3](https://github.com/smoia/EuskalIBUR_preproc/pull/3) ([@smoia](https://github.com/smoia))
+
+#### 🐛 Bug Fix
+
+- fix: try again fixing brain_extract import ([@smoia](https://github.com/smoia))
+- fix: Fix displayhelp call ([@smoia](https://github.com/smoia))
+- fix: fix container definition ([@smoia](https://github.com/smoia))
+- fix: More minor improvements ([@smoia](https://github.com/smoia))
+- fix: Python. ([@smoia](https://github.com/smoia))
+- fix: update github environment ([@smoia](https://github.com/smoia))
+- fix: Ensure system python is used, and not something else. ([@smoia](https://github.com/smoia))
+- fix: fix preparation for sbref ([@smoia](https://github.com/smoia))
+- fix: fix json check in sbref call ([@smoia](https://github.com/smoia))
+- fix: Update preproc version ([@smoia](https://github.com/smoia))
+- fix: Fix ants version ([@smoia](https://github.com/smoia))
+- fix: Be able to run tedana in a very controlled environment ([@smoia](https://github.com/smoia))
+- fix: fix tasks passage ([@smoia](https://github.com/smoia))
+- fix: Fix atropos ([@smoia](https://github.com/smoia))
+- fix: don't make a big deal out of SBRef folder existing ([@smoia](https://github.com/smoia))
+- fix: Fix SBRef copy ([@smoia](https://github.com/smoia))
+- fix: Greyplots in fdir, remove moving, better setup. ([@smoia](https://github.com/smoia))
+- fix: Fix anatomical folder ([@smoia](https://github.com/smoia))
+- fix: Fix directory creation ([@smoia](https://github.com/smoia))
+- fix: Fix redirection from scripts and remove useless check on path end ([@smoia](https://github.com/smoia))
+- fix: Stop on input anatomical file, not on basename. ([@smoia](https://github.com/smoia))
+- fix: Fix brain extraction due to 3dSkullstrip behaviour with plumb volumes ([@smoia](https://github.com/smoia))
+- fix: average tissue message ([@smoia](https://github.com/smoia))
+
+#### ⚠️ Pushed to `master`
+
+- Fix version call if no tag is present ([@smoia](https://github.com/smoia))
+- enh: Better way to deal with tedana's peculiarity: containerize better. ([@smoia](https://github.com/smoia))
+- Add json specifier in all pipelines ([@smoia](https://github.com/smoia))
+- int: Update Ci env ([@smoia](https://github.com/smoia))
+- Fix folder preparation for anatomicals ses > 1 ([@smoia](https://github.com/smoia))
+- Fix: remove copy of non-existent file ([@smoia](https://github.com/smoia))
+- Fix: explicitly exit 0 ([@smoia](https://github.com/smoia))
+- int: Improve logging ([@smoia](https://github.com/smoia))
+- Make a tmp folder per subject ([@smoia](https://github.com/smoia))
+- int: remove npm from autorc ([@smoia](https://github.com/smoia))
+- int: Add conventional commits to auto ([@smoia](https://github.com/smoia))
+- Fix bad call of grayplots ([@smoia](https://github.com/smoia))
+- Fix issue with overwrite ([@smoia](https://github.com/smoia))
+- Fix func_pepolar acqparam redirection [fix] ([@smoia](https://github.com/smoia))
+- Fix overwriting ([@smoia](https://github.com/smoia))
+- Fix bunch of stuff ([@smoia](https://github.com/smoia))
+- Fix folder ([@smoia](https://github.com/smoia))
+- Implement auto ([@smoia](https://github.com/smoia))
+- Fix variables ([@smoia](https://github.com/smoia))
+- Remove unused files ([@smoia](https://github.com/smoia))
+- Finish func and revise anat ([@smoia](https://github.com/smoia))
+- Revision of anat, utils and first part of functional ([@smoia](https://github.com/smoia))
+- First commit ([@smoia](https://github.com/smoia))
+- Initial commit ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.14.3 (Sun Dec 07 2025)
 
 #### 🐛 Bug Fix
