@@ -3,24 +3,13 @@
 # shellcheck source=../utils.sh
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
-displayhelp() {
-echo "Required:"
-echo "sub ses wdr"
-echo "Optional:"
-echo "fs_json anat scriptdir tmp debug"
-exit ${1:-0}
-}
-
 # Check if there is input
-
-if [[ ( $# -eq 0 ) ]]
-	then
-	displayhelp
-fi
+[[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
 fs_json=none
-anat=sub-${sub}_ses-01_T2w
+anat=none
+aseg=none
 tmp=.
 scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 scriptdir=${scriptdir%/*}/02.func_preproc
@@ -40,13 +29,14 @@ do
 
 		-fs_json)	fs_json=$2;shift;;
 		-anat)		anat=$2;shift;;
+		-aseg)		aseg=$2;shift;;
 		-scriptdir)	scriptdir=$2;shift;;
 		-tmp)		tmp=$2;shift;;
 		-debug)		debug=yes;;
 
-		-h)			displayhelp;;
+		-h)			displayhelp $0;;
 		-v)			version;exit 0;;
-		*)			echo "Wrong flag: $1";displayhelp 1;;
+		*)			echo "Wrong flag: $1";displayhelp $0 1;;
 	esac
 	shift
 done
@@ -59,7 +49,10 @@ checkoptvar fs_json anat scriptdir tmp debug
 [[ ${debug} == "yes" ]] && set -x
 
 ### Remove nifti suffix
-anat=${anat%.nii*}
+for var in anat aseg
+do
+	eval "${var}=$( removeniisfx ${!var})"
+done
 
 #Derived variables
 
@@ -131,7 +124,7 @@ echo "************************************"
 echo "************************************"
 
 ${scriptdir}/11.sbref_spacecomp.sh -sbref_in ${sbref}_tpp -anat ${anat} \
-								   -fdir ${fdir}
+								   -fdir ${fdir} -aseg ${aseg} -use_bbr -tmp ${tmp}
 
 sbreffunc=${fdir}/$( basename ${sbref} )
 

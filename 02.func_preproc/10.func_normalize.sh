@@ -3,20 +3,8 @@
 # shellcheck source=../utils.sh
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
-displayhelp() {
-echo "Required:"
-echo "func_in anat mref std fdir"
-echo "Optional:"
-echo "mmres aref tmp"
-exit ${1:-0}
-}
-
 # Check if there is input
-
-if [[ ( $# -eq 0 ) ]]
-	then
-	displayhelp
-fi
+[[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
 mmres=0
@@ -41,9 +29,9 @@ do
 		-aref)		aref=$2;shift;;
 		-tmp)		tmp=$2;shift;;
 
-		-h)			displayhelp;;
+		-h)			displayhelp $0;;
 		-v)			version;exit 0;;
-		*)			echo "Wrong flag: $1";displayhelp 1;;
+		*)			echo "Wrong flag: $1";displayhelp $0 1;;
 	esac
 	shift
 done

@@ -3,21 +3,8 @@
 # shellcheck source=../utils.sh
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
-displayhelp() {
-echo "Required:"
-echo "sub ses task TEs wdr"
-echo "Optional:"
-echo "fs_json anat aseg voldiscard polort sbref mask slicetimeinterp \
-	  despike fwhm den_motreg den_detrend den_meica den_tissues \
-	  applynuisance only_echoes only_optcom greyplot scriptdir tmp debug"
-exit ${1:-0}
-}
-
 # Check if there is input
-if [[ ( $# -eq 0 ) ]]
-	then
-	displayhelp
-fi
+[[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
 fs_json=none
@@ -80,9 +67,9 @@ do
 		-tmp)				tmp=$2;shift;;
 		-debug)				debug=yes;;
 
-		-h)			displayhelp;;
+		-h)			displayhelp $0;;
 		-v)			version;exit 0;;
-		*)			echo "Wrong flag: $1";displayhelp 1;;
+		*)			echo "Wrong flag: $1";displayhelp $0 1;;
 	esac
 	shift
 done
@@ -164,7 +151,7 @@ echo "fmat=${fileprx}_task-${task}_${fmatsfx}"
 fmat=${fileprx}_task-${task}_${fmatsfx}
 
 ${scriptdir}/03.func_spacecomp.sh -func_in ${fmat}_cr -fdir ${fdir} -anat ${anat} \
-								  -mref ${sbref} -aseg ${aseg} -tmp ${tmp}
+								  -mref ${sbref} -aseg ${aseg} -use_bbr -tmp ${tmp}
 
 for e in $( seq 1 ${nTE} )
 do

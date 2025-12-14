@@ -4,8 +4,6 @@
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
 # Check if there is input
-
-# Check if there is input
 [[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
@@ -79,9 +77,9 @@ do
 		-skip_greyplots)		greyplot=no;;									# Don't compute GreyPlots. Using this option saves a lot of time and computing costs, but then QA/QC is more difficult.
 		-debug)					debug=yes;;										# Return all messages and don't delete tmp folder.
 
-		-h)			displayhelp;;												# Display this help.
+		-h)			displayhelp $0;;											# Display this help.
 		-v)			version;exit 0;;											# Show the version.
-		*)			echo "Wrong flag: $1";displayhelp 1;;
+		*)			echo "Wrong flag: $1";displayhelp $0 1;;
 	esac
 	shift
 done
@@ -260,7 +258,7 @@ then
 	then
 		# If asked & it's ses 01, run sbref
 		${scriptdir}/sbref_preproc.sh -sub ${sub} -ses ${ses} -wdr ${wdr} \
-									  -anat ${anat} -tmp ${tmp}
+									  -anat ${anat} -aseg ${aseg} -tmp ${tmp}
 	elif [ ${ses} -lt 1 ]
 	then
 		echo "ERROR: the session number introduced makes no sense."

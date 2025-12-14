@@ -3,20 +3,8 @@
 # shellcheck source=../utils.sh
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
-displayhelp() {
-echo "Required:"
-echo "anat_in adir"
-echo "Optional:"
-echo "aref tmp"
-exit ${1:-0}
-}
-
 # Check if there is input
-
-if [[ ( $# -eq 0 ) ]]
-	then
-	displayhelp
-fi
+[[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
 aref=none
@@ -36,9 +24,9 @@ do
 		-aref)		aref=$2;shift;;
 		-tmp)		tmp=$2;shift;;
 
-		-h)			displayhelp;;
+		-h)			displayhelp $0;;
 		-v)			version;exit 0;;
-		*)			echo "Wrong flag: $1";displayhelp 1;;
+		*)			echo "Wrong flag: $1";displayhelp $0 1;;
 	esac
 	shift
 done
@@ -64,7 +52,7 @@ cwd=$(pwd)
 cd ${adir} || exit 1
 
 #Read and process input
-anat=$( basename ${anat_in%.nii.gz} )
+anat=$( basename ${anat_in} )
 if_missing_do mkdir ${tmp}
 
 ## 02. Bias Field Correction with ANTs
@@ -81,7 +69,14 @@ then
 	arefsfx=${arefsfx#*ses-*_}
 	echo "Flirting ${tmp}/${anat}_bfc on ${aref}"
 	flirt -in ${tmp}/${anat}_bfc -ref ${aref} -cost normmi -searchcost normmi \
-	-omat ../reg/${anat}2${arefsfx}_fsl.mat -o ../reg/${anat}2${arefsfx}_fsl.nii.gz
+		  -omat ../reg/${anat}2${arefsfx}_fsl.mat -o ../reg/${anat}2${arefsfx}_fsl.nii.gz
+
+	c3d_affine_tool -ref ${aref} -src ${tmp}/${anat}_bfc ../reg/${anat}2${arefsfx}_fsl.mat \
+				    -fsl2ras -oitk ../reg/${anat}2${arefsfx}0GenericAffine.mat
+	antsApplyTransforms -d 3 -i ${tmp}/${anat}_bfc.nii.gz \
+						-r ${aref}.nii.gz -o ../reg/${anat}2${arefsfx}.nii.gz \
+						-n Linear -v -t ../reg/${anat}2${arefsfx}0GenericAffine.mat
+
 fi
 
 cd ${cwd}

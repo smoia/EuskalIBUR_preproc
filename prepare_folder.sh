@@ -3,20 +3,8 @@
 # shellcheck source=./utils.sh
 source $(dirname "$0")/utils.sh
 
-displayhelp() {
-echo "Required:"
-echo "sub ses wdr std prjname"
-echo "Optional:"
-echo "overwrite stdpath tmp tasks"
-exit ${1:-0}
-}
-
 # Check if there is input
-
-if [[ ( $# -eq 0 ) ]]
-	then
-	displayhelp
-fi
+[[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
 overwrite=no
@@ -45,9 +33,9 @@ do
 		-tmp)		tmp=$2;shift;;
 		-tasks)		tasks=$2;shift;;
 
-		-h)			displayhelp;;
+		-h)			displayhelp $0;;
 		-v)			version;exit 0;;
-		*)			echo "Wrong flag: $1";displayhelp 1;;
+		*)			echo "Wrong flag: $1";displayhelp $0 1;;
 	esac
 	shift
 done
@@ -109,7 +97,7 @@ if_missing_do copy ${stdpath}/${std}.nii.gz ${sesfld}/reg/${std}.nii.gz
 															${sesfld}/reg/${std}_resamp_${mmres}mm.nii.gz
 
 [[ ${ses} == "01" ]] && imcp ${sourcepath}/sub-${sub}/ses-${ses}/anat/*.nii.gz ${tmp}/.
-for t in ${tasks}; do imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*${t}*.nii.gz ${tmp}/.; done
+[[ "${tasks}" != "none" ]] && for t in ${tasks}; do imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*${t}*.nii.gz ${tmp}/.; done
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/func/*breathhold*sbref.nii.gz ${tmp}/.
 imcp ${sourcepath}/sub-${sub}/ses-${ses}/fmap/*.nii.gz ${tmp}/.
 

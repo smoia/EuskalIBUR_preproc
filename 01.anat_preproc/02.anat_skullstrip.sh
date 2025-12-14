@@ -3,25 +3,12 @@
 # shellcheck source=../utils.sh
 source $( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/../utils.sh
 
-displayhelp() {
-echo "Required:"
-echo "anat_in adir"
-echo "Optional:"
-echo "mask aref c3dsource"
-exit ${1:-0}
-}
-
 # Check if there is input
-
-if [[ ( $# -eq 0 ) ]]
-	then
-	displayhelp
-fi
+[[ ( $# -eq 0 ) ]] && displayhelp $0 1
 
 # Preparing the default values for variables
 mask=none
-aref=none
-c3dsource=none
+masksource_in=none
 
 ### print input
 printline=$( basename -- $0 )
@@ -34,23 +21,22 @@ do
 		-anat_in)	anat_in=$2;shift;;
 		-adir)		adir=$2;shift;;
 
-		-mask)		mask=$2;shift;;
-		-aref)		aref=$2;shift;;
-		-c3dsource)	c3dsource=$2;shift;;
+		-mask)			mask=$2;shift;;				# Specify an external mask.
+		-masksource)	masksource_in=$2;shift;;	# Specify another file from where to take a mask to apply to this anatomical. A transformation matrix from it must exist for this.
 
-		-h)			displayhelp;;
+		-h)			displayhelp $0;;
 		-v)			version;exit 0;;
-		*)			echo "Wrong flag: $1";displayhelp 1;;
+		*)			echo "Wrong flag: $1";displayhelp $0 1;;
 	esac
 	shift
 done
 
 # Check input
 checkreqvar anat_in adir
-checkoptvar mask aref c3dsource
+checkoptvar mask masksource_in
 
 ### Remove nifti suffix
-for var in anat_in mask aref
+for var in anat_in mask masksource_in
 do
 	eval "${var}=${!var%.nii*}"
 done
@@ -67,17 +53,32 @@ cd ${adir} || exit
 
 #Read and process input
 anat=$( basename ${anat_in%_*} )
+anatsfx=${anat#*ses-*_}
+
+# First check if there is a mask source, if so, bring that mask in anat.
+masksource=$( basename ${masksource_in%_mask} )
+# Specifically remove _brain_mask if specified - _mask was already removed if present.
+masksource=${masksource%_brain}
+
+if [[ "${masksource}" != "none" ]] && [[ -e ../reg/${masksource}2${anatsfx}0GenericAffine.mat ]]
+then
+	# If a reference is specified, coreg the mask to the reference
+	echo "Flirting ${masksource} into ${anat}"
+	antsApplyTransforms -d 3 -i ${masksource}_brain_mask.nii.gz \
+						-r ${anat_in}.nii.gz -o ${anat}_brain_mask.nii.gz \
+						-n NearestNeighbor -t ../reg/${masksource}2${anatsfx}0GenericAffine.mat
+	mask=${anat}_brain_mask
+fi
 
 if [[ "${mask}" == "none" ]]
 then
-	# If no mask is specified, then creates it.
+	# If no mask is specified, create it.
 	echo "Skull Stripping ${anat}"
 
 	# This comes from utils.sh
 	brain_extract -nii ${anat_in} -method 3dss -tmp ${adir}
 	mv ${anat_in}_brain.nii.gz ${anat}_brain.nii.gz
 	mv ${anat_in}_brain_mask.nii.gz ${anat}_brain_mask.nii.gz
-	mask=${anat}_brain_mask
 	echo ""
 else
 	# If a mask is specified, use it.
@@ -88,38 +89,16 @@ else
 	fi
 	echo "Masking ${anat}"
 	fslmaths ${anat_in} -mas ${mask} ${anat}_brain
-	fslmaths ${anat}_brain -bin ${anat}_brain_mask
+	fslmaths ${anat}_brain -bin ${anat}_brain_mask  # Just to be sure!
 fi
 
-arefsfx=$( basename ${aref%_*} )
-arefsfx=${aref#*ses-*_}
-
-if [[ "${aref}" != "none" ]] && [[ -e ../reg/${anat}2${arefsfx}_fsl.mat ]]
+# If a masksource was specified, register the brain to that one.
+if [[ "${masksource}" != "none" ]]
 then
-	# If a reference is specified, coreg the mask to the reference
-	echo "Flirting ${mask} into ${aref}"
-	flirt -in ${mask} -ref ${aref} -cost normmi -searchcost normmi \
-		  -init ../reg/${anat}2${arefsfx}_fsl.mat -o ${aref}_brain_mask \
-		  -applyxfm -interp nearestneighbour
-fi
-
-if [[ "${c3dsource}" != "none" ]]
-then
-	c3dfile=$(basename ${c3dsource})
-	anatsfx=${anat#*ses-*_}
-
-	# If a source for c3d is specified,
-	# translate fsl transformation into ants with the right images.
-	echo "Moving from FSL to ants in brain extracted images"
-	c3d_affine_tool -ref ${anat}_brain -src ${c3dsource}_brain ../reg/${c3dfile}2${anatsfx}_fsl.mat \
-				    -fsl2ras -oitk ../reg/${c3dfile}2${anatsfx}0GenericAffine.mat
-	# Also transform both skullstripped and not!
-	antsApplyTransforms -d 3 -i ${c3dsource}_brain.nii.gz \
-						-r ${anat}_brain.nii.gz -o ../reg/${c3dfile}_brain2${anatsfx}_brain.nii.gz \
-						-n Linear -t ../reg/${c3dfile}2${anatsfx}0GenericAffine.mat
-	# antsApplyTransforms -d 3 -i ${c3dsource}.nii.gz \
-	# 					-r ${anat}.nii.gz -o ../reg/${c3dsource}2${anatsfx}.nii.gz \
-	# 					-n Linear -t ../reg/${c3dsource}2${anatsfx}0GenericAffine.mat
+	masksourcesfx=${masksource#*ses-*_}
+	antsApplyTransforms -d 3 -i ${anat}_brain.nii.gz \
+						-r ${masksource}_brain.nii.gz -o ../reg/${anat}_brain2${masksourcesfx}_brain.nii.gz \
+						-n Linear -t [../reg/${masksource}2${anatsfx}0GenericAffine.mat,1]
 fi
 
 cd ${cwd}
