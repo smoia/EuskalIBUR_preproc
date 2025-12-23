@@ -1,3 +1,15 @@
+# 0.16.0 (Tue Dec 23 2025)
+
+#### 🚀 Enhancement
+
+- feat: Add BBR registration and reduce skullstripping steps complexity ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.15.0 (Thu Dec 11 2025)
 
 :tada: This release contains work from a new contributor! :tada:
