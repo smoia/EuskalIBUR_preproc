@@ -31,7 +31,7 @@ preproc_echoes=yes
 preproc_optcom=yes
 greyplot=yes
 tmp=.
-scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+scriptdir="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/.."
 debug=no
 fwhm=none
 
@@ -157,7 +157,7 @@ echo ""
 
 if [[ "${run_prep}" == "yes" ]]
 then
-	runprepfld="${scriptdir}/../prepare_folder.sh -sub ${sub} -ses ${ses}"
+	runprepfld="${scriptdir}/prepare_folder.sh -sub ${sub} -ses ${ses}"
 	runprepfld="${runprepfld} -wdr ${wdr} -std ${std} -mmres ${mmres}"
 	runprepfld="${runprepfld} -tmp ${tmp} -prjname ${prjname}"
 	runprepfld="${runprepfld} -tasks \"${tasks}\""

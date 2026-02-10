@@ -112,12 +112,11 @@ nacc=$( cat accepted_list.1D )
 nrej=$( cat rejected_list.1D )
 
 # Store some files for data check or later use
-replace_and mkdir ${fdir}/${func}_meica ${fdir}/${func}_meica/figures
+replace_and mkdir ${fdir}/${func}_meica
 
-cp accepted_list.1D ignored_list.1D rejected_list.1D accepted_list_by_variance.1D \
-   ignored_list_by_variance.1D rejected_list_by_variance.1D ${fdir}/${func}_meica/.
-cp adaptive_mask.nii.gz ica_decomposition.json ica_mixing_orig.tsv ica_mixing.tsv ${fdir}/${func}_meica/.
-cp -r figures ${fdir}/${func}_meica/figures
+mv ./*.1D ${fdir}/${func}_meica/.
+mv ./*.nii.gz ./*.json ./*.tsv ${fdir}/${func}_meica/.
+mv figures/* ${fdir}/${func}_meica/figures/.
 
 1dcat ica_mixing.tsv"[$nacc]" > accepted.1D
 1dcat ica_mixing.tsv"[$nrej]" > rej.tr.1D
