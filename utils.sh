@@ -9,7 +9,7 @@ brain_extract () {
 version() {
 	local script_file=${1:-''}
 	tag=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; git describe --tags --always)
-	echo "M3PI_preproc, $( basename ${script_file} ), version ${tag}"
+	echo "EuskalIBUR_preproc, $( basename ${script_file} ), version ${tag}"
 	echo ""
 }
 

@@ -87,7 +87,7 @@ echo "Running tedana"
 echo "--------------"
 echo "Python: $( which python ) $( which python3 )"
 
-tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica
+tedana -d ${tmp}/${func}.nii.gz -e ${TEs} --tedpca mdl --out-dir ${tmp}/${func}_meica --seed 42
 
 cd ${tmp}/${func}_meica
 
