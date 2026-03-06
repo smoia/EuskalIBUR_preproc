@@ -115,14 +115,20 @@ nrej=$( cat rejected_list.1D )
 replace_and mkdir ${fdir}/${func}_meica
 
 mv ./*.1D ${fdir}/${func}_meica/.
-mv ./*.nii.gz ./*.json ./*.tsv ${fdir}/${func}_meica/.
+mv ./adaptive_mask.nii.gz ./ica_components.nii.gz ${fdir}/${func}_meica/.
+mv ./*.json ${fdir}/${func}_meica/.
 mv figures ${fdir}/${func}_meica/.
+cp ./*.tsv ${fdir}/${func}_meica/.
 
 1dcat ica_mixing.tsv"[$nacc]" > accepted.1D
-1dcat ica_mixing.tsv"[$nrej]" > rej.tr.1D
-1dtranspose rej.tr.1D > rejected.1D
+1dcat ica_mixing.tsv"[$nrej]" > rejected.1D
+1dtranspose rejected.1D > rej_tr.1D
 
-3dTproject -ort accepted.1D -polort -1 -prefix ${tmp}/tr.1D -input rejected.1D -overwrite
+3dTproject -ort accepted.1D -polort -1 -prefix ${tmp}/tr.1D -input rej_tr.1D -overwrite
 1dtranspose ${tmp}/tr.1D > ${fdir}/$( basename ${func_in%_*} )_rej_ort.1D
+
+mv accepted.1D ${fdir}/${func}_meica/.
+cp rejected.1D ${fdir}/$( basename ${func_in%_*} )_rej.1D
+mv rejected.1D ${fdir}/${func}_meica/.
 
 cd ${cwd}
