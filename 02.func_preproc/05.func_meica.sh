@@ -131,4 +131,6 @@ mv accepted.1D ${fdir}/${func}_meica/.
 cp rejected.1D ${fdir}/$( basename ${func_in%_*} )_rej.1D
 mv rejected.1D ${fdir}/${func}_meica/.
 
+python3 ${scriptpath}/05c.tedana2fsleyes.py ${fdir}/${func}_meica
+
 cd ${cwd}
