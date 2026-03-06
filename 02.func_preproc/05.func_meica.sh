@@ -116,7 +116,7 @@ replace_and mkdir ${fdir}/${func}_meica
 
 mv ./*.1D ${fdir}/${func}_meica/.
 mv ./*.nii.gz ./*.json ./*.tsv ${fdir}/${func}_meica/.
-mv figures/* ${fdir}/${func}_meica/figures/.
+mv figures ${fdir}/${func}_meica/.
 
 1dcat ica_mixing.tsv"[$nacc]" > accepted.1D
 1dcat ica_mixing.tsv"[$nrej]" > rej.tr.1D
