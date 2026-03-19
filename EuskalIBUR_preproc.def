@@ -13,7 +13,6 @@ PK_VER=0.5.2
 FS_VER=8.1.0
 
 %environment
-# export templateloc=/usr/share/afni/atlases
 export AFNIPATH="/opt/afni-AFNI_{{ AFNI_VER }}"
 export AFNI_PLUGINPATH="$AFNIPATH"
 export templateloc=/usr/share/afni/atlases

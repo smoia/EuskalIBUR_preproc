@@ -8,7 +8,10 @@ brain_extract () {
 
 version() {
 	local script_file=${1:-''}
-	tag=$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; git describe --tags --always)
+	local script_dir
+	script_dir=$( dirname "$(readlink -f "${BASH_SOURCE[0]}")" )
+	tag=0
+	[ $( git -C "${script_dir}" rev-parse --is-inside-work-tree 2>/dev/null ) == "true" ] && tag=$( git -C "${script_dir}" describe --tags --always )
 	echo "EuskalIBUR_preproc, $( basename ${script_file} ), version ${tag}"
 	echo ""
 }
