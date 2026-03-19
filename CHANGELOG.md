@@ -1,3 +1,24 @@
+# 0.17.0 (Thu Mar 19 2026)
+
+#### 🚀 Enhancement
+
+- feat: Better tag versioning ([@smoia](https://github.com/smoia))
+- feat: make tedana output fsleyes compatible ([@smoia](https://github.com/smoia))
+
+#### 🐛 Bug Fix
+
+- fix: use path join for non-unix and fix label classification ([@smoia](https://github.com/smoia))
+- fix: transfer files ([@smoia](https://github.com/smoia))
+- fix: moving figures ([@smoia](https://github.com/smoia))
+- fix: scriptdir and meica seed ([@smoia](https://github.com/smoia))
+- fix: Move all MEICA content ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.16.0 (Tue Dec 23 2025)
 
 #### 🚀 Enhancement
