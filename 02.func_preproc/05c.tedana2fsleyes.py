@@ -13,6 +13,8 @@ cwd = os.getcwd()
 
 os.chdir(indir)
 
+print(f'\n-------------\nFLSeyes-ing tedana results in {indir}\n-------------\n')
+
 os.makedirs('fsleyes', exist_ok=True)
 
 shutil.copy2('ica_components.nii.gz', os.path.join('fsleyes', 'melodic_IC.nii.gz'))
