@@ -1,3 +1,15 @@
+# 0.17.1 (Mon Nov 23 2026)
+
+#### ⚠️ Pushed to `master`
+
+- Update README.md ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.17.0 (Thu Mar 19 2026)
 
 #### 🚀 Enhancement
